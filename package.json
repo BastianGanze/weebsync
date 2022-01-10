@@ -1,12 +1,12 @@
 {
-  "name": "anisync",
+  "name": "weebsync",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "build-app": "esbuild src/index.ts --platform=node --bundle --outfile=build/out.js",
-    "build-executables": "pkg -c pkg.json build/out.js --options=no-deprecation -o dist/anisync",
+    "build-executables": "pkg -c pkg.json build/out.js --options=no-deprecation -o dist/weebsync",
     "build": "yarn run build-app && yarn run build-executables"
   },
   "devDependencies": {

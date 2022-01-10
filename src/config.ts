@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const CONFIG_NAME = 'anisync.config.json';
+const CONFIG_NAME = 'weebsync.config.json';
 
 export interface Config {
   server: {
@@ -25,7 +25,7 @@ export function createDefaultConfig(): Config {
     server: {
       host: '',
       password: '',
-      port: 23,
+      port: 21,
       user: ''
     },
     syncMaps: []
@@ -38,8 +38,11 @@ export type GetConfigResult = | {
   { type: 'UnknownError' };
 
 export function getConfig(): GetConfigResult {
+  const basePath = process.execPath.includes('/') ? process.execPath.split('/') : process.execPath.split('\\');
+  basePath.pop();
+  const configPath = `${basePath.join('/')}/${CONFIG_NAME}`;
   try {
-    return {type: 'Ok', data: JSON.parse(fs.readFileSync(CONFIG_NAME).toString('utf-8')) as Config};
+    return {type: 'Ok', data: JSON.parse(fs.readFileSync(configPath).toString('utf-8')) as Config};
   } catch (e) {
     if (e) {
       if (e instanceof Error) {
@@ -47,7 +50,7 @@ export function getConfig(): GetConfigResult {
           const result = (e as NodeJS.ErrnoException).code;
           if (result === "ENOENT") {
             let config = createDefaultConfig();
-            fs.writeFileSync(CONFIG_NAME, JSON.stringify(config, null, 4));
+            fs.writeFileSync(configPath, JSON.stringify(config, null, 4));
             return {type: 'Ok', data: config};
           }
         } else {

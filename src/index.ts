@@ -24,14 +24,11 @@ async function run() {
     .with({type: 'UnknownError'}, async () => {await showErrorAndExit("Unknown error happened. :tehe:");})
     .with({type: 'WrongConfigError', message: select()}, async (err) => {await showErrorAndExit(`Config malformed. "${err}"`);})
     .exhaustive() as Config;
-
   const ftpClient = match(await createFTPClient(config))
     .with({type: 'Ok', data: select()}, (res) => res)
     .with({type: 'ConnectionError', message: select()}, async (err) => {await showErrorAndExit(`FTP Connection error: ${err}"`);})
     .exhaustive() as FTP;
-
   for (const syncMap of config.syncMaps) {
-
     try {
       if (!fs.existsSync(syncMap.destinationFolder)){
         fs.mkdirSync(syncMap.destinationFolder, { recursive: true });
@@ -40,7 +37,7 @@ async function run() {
       if (e instanceof Error) {
         if ("code" in e) {
           const error = e as ErrnoException;
-          console.error(`Could not create folder on file system, "${syncMap.destinationFolder}" is faulty: "${error.message}"`);
+          await showErrorAndExit(`Could not create folder on file system, "${syncMap.destinationFolder}" is faulty: "${error.message}"`);
         }
       }
     }
@@ -76,7 +73,7 @@ async function run() {
         if ("code" in e) {
           const error = e as { code: number };
           if (error.code == 550) {
-            console.error(`Directory "${syncMap.originFolder}" does not exist on remote.`);
+            await showErrorAndExit(`Directory "${syncMap.originFolder}" does not exist on remote.`);
           }
         } else {
           console.error(e);
@@ -87,7 +84,8 @@ async function run() {
     }
   }
 
-  await showErrorAndExit("Everything up to date");
+  ui.log.write("Everything up to date");
+  process.exit(0);
 }
 
 run();
