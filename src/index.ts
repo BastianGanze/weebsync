@@ -18,16 +18,19 @@ Handlebars.registerHelper("renumber", function(num1: string, num2: number, paddi
 });
 
 async function run() {
-
-  const config = match(getConfig())
-    .with({type: 'Ok', data: select()}, (res) => res)
+  const config = await match(getConfig())
+    .with({type: 'Ok', data: select()}, (res) => Promise.resolve(res))
     .with({type: 'UnknownError'}, async () => {await showErrorAndExit("Unknown error happened. :tehe:");})
-    .with({type: 'WrongConfigError', message: select()}, async (err) => {await showErrorAndExit(`Config malformed. "${err}"`);})
+    .with({type: 'WrongConfigError', message: select()}, async (err) => {
+      await showErrorAndExit(`Config malformed. "${err}"`);
+    })
     .exhaustive() as Config;
-  const ftpClient = match(await createFTPClient(config))
-    .with({type: 'Ok', data: select()}, (res) => res)
+
+  const ftpClient = await match(await createFTPClient(config))
+    .with({type: 'Ok', data: select()}, (res) => Promise.resolve(res))
     .with({type: 'ConnectionError', message: select()}, async (err) => {await showErrorAndExit(`FTP Connection error: ${err}"`);})
     .exhaustive() as FTP;
+
   for (const syncMap of config.syncMaps) {
     try {
       if (!fs.existsSync(syncMap.destinationFolder)){
