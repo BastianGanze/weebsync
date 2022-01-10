@@ -24,6 +24,10 @@ export class FTP {
     })
   }
 
+  onError(cb: (err: Error) => void) {
+    this._client.on('error', cb);
+  }
+
   getFile(hostFilePath: string, localFilePath: string, size: number): Promise<void> {
     const progress = progress_stream({
       length: size,
@@ -38,12 +42,15 @@ export class FTP {
         }
         stream.pipe(progress).pipe(fs.createWriteStream(localFilePath));
         progress.on('progress', (data) => {
-          ui.updateBottomBar(`${data.percentage.toFixed(2).padStart(6, ' ')}%`);
+          ui.updateBottomBar(`${data.percentage.toFixed(2).padStart(6, ' ')}% - ${(data.speed / 1000 / 1000).toFixed(3).padStart(7, ' ')} mB/s`);
         });
         stream.once('finish', () => {
           ui.updateBottomBar('');
           resolve();
-        })
+        });
+        stream.on('error', (err) => {
+          reject(err);
+        });
       });
     });
   }

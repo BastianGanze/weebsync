@@ -31,6 +31,10 @@ async function run() {
     .with({type: 'ConnectionError', message: select()}, async (err) => {await showErrorAndExit(`FTP Connection error: ${err}"`);})
     .exhaustive() as FTP;
 
+  ftpClient.onError(async (err) => {
+    await showErrorAndExit(`FTP Connection error: ${err}"`)
+  });
+
   for (const syncMap of config.syncMaps) {
     try {
       if (!fs.existsSync(syncMap.destinationFolder)){
