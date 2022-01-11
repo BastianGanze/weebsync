@@ -73,6 +73,7 @@ async function syncFiles(config: Config) {
   }
   ui.log.write(`Sync done!`);
   syncInProgress = false;
+  ftpClient.close();
 }
 
 start();

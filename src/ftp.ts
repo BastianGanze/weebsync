@@ -3,8 +3,6 @@ import { Config } from "./config";
 import fs from "fs";
 import progress_stream from "progress-stream";
 import { ui } from "./ui";
-import { match, select } from "ts-pattern";
-import { showErrorAndExit } from "./utils";
 
 export type CreateFtpClientResult =
   | {
@@ -27,6 +25,10 @@ export class FTP {
         resolve(listing);
       });
     });
+  }
+
+  close() {
+    this._client.end();
   }
 
   onError(cb: (err: Error) => void) {
@@ -76,6 +78,7 @@ export class FTP {
 export function createFTPClient(
   config: Config
 ): Promise<CreateFtpClientResult> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return new Promise((resolve, _) => {
     const client = new Client();
     client.on("ready", () => {
