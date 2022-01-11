@@ -1,5 +1,6 @@
 {
   "pkg": {
-    "targets": [ "node16-windows", "node16-linux", "node16-macos" ]
+    "targets": [ "node16-windows", "node16-linux", "node16-macos" ],
+    "assets": "static/**/*"
   }
 }
