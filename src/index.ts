@@ -9,7 +9,7 @@ import { match, select } from "ts-pattern";
 let syncInProgress = false;
 
 async function start() {
-  let autoSync: number;
+  let autoSyncInterval: NodeJS.Timer;
 
   const config = await getConfigOrExit();
 
@@ -21,13 +21,11 @@ async function start() {
     process.exit(0);
   });
 
-  systray.sync.sub(async () => {
-    await syncFiles(config);
-  });
+  systray.sync.sub(() => syncFiles(config));
 
   systray.autoSync.sub((enabled) => {
-    if (autoSync) {
-      clearInterval(autoSync);
+    if (autoSyncInterval) {
+      clearInterval(autoSyncInterval);
     }
 
     if (enabled) {
@@ -35,7 +33,10 @@ async function start() {
         ? config.autoSyncIntervalInMinutes
         : 30;
       ui.log.write(`AutoSync enabled! Interval is ${interval} minutes.`);
-      autoSync = setInterval(syncFiles, interval * 60 * 1000);
+      autoSyncInterval = setInterval(
+        () => syncFiles(config),
+        interval * 60 * 1000
+      );
     } else {
       ui.log.write("AutoSync disabled!");
     }
