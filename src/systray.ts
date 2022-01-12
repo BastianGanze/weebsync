@@ -1,6 +1,6 @@
 import * as child_process from "child_process";
 import fs from "fs";
-import { Config, PATH_TO_EXECUTABLE } from "./config";
+import { PATH_TO_EXECUTABLE } from "./config";
 import path from "path";
 import { showErrorAndExit } from "./utils";
 import { SimpleEventDispatcher } from "strongly-typed-events";
@@ -41,6 +41,7 @@ function streamCopy(source: string, destination: string): Promise<void> {
       .createReadStream(source)
       .pipe(fs.createWriteStream(destination));
     stream.on("finish", () => {
+      fs.chmodSync(destination, "755");
       resolve();
     });
     stream.on("error", (err) => {

@@ -1,9 +1,9 @@
 import fs from "fs";
 import { match, select } from "ts-pattern";
-import { showErrorAndExit } from "./utils";
+import chokidar from "chokidar";
+import { ui } from "./ui";
 
 const CONFIG_NAME = "weebsync.config.json";
-
 export const PATH_TO_EXECUTABLE: string = (() => {
   const basePath = process.execPath.includes("/")
     ? process.execPath.split("/")
@@ -11,6 +11,7 @@ export const PATH_TO_EXECUTABLE: string = (() => {
   basePath.pop();
   return basePath.join("/");
 })();
+export const CONFIG_FILE_PATH = `${PATH_TO_EXECUTABLE}/${CONFIG_NAME}`;
 
 export interface Config {
   syncOnStart?: boolean;
@@ -54,24 +55,46 @@ export type GetConfigResult =
   | { type: "WrongConfigError"; message: string }
   | { type: "UnknownError" };
 
-export async function getConfigOrExit(): Promise<Config> {
-  return (await match(getConfig())
+export async function waitForCorrectConfig(): Promise<Config> {
+  ui.log.write("Loading configuration.");
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve) => {
+    const tmpConfig = await loadConfig();
+    if (tmpConfig) {
+      resolve(tmpConfig);
+    } else {
+      const watcher = chokidar.watch(CONFIG_FILE_PATH);
+      watcher.on("change", async () => {
+        const tmpConfig = await loadConfig();
+        if (tmpConfig) {
+          await watcher.close();
+          resolve(tmpConfig);
+        }
+      });
+    }
+  });
+}
+
+export async function loadConfig(): Promise<Config | undefined> {
+  return await match(getConfig())
     .with({ type: "Ok", data: select() }, (res) => Promise.resolve(res))
     .with({ type: "UnknownError" }, async () => {
-      await showErrorAndExit("Unknown error happened. :tehe:");
+      ui.log.write("Unknown error happened. :tehe:");
+      return Promise.resolve(void 0);
     })
     .with({ type: "WrongConfigError", message: select() }, async (err) => {
-      await showErrorAndExit(`Config malformed. "${err}"`);
+      ui.log.write(`Config malformed. "${err}"`);
+      return Promise.resolve(void 0);
     })
-    .exhaustive()) as Config;
+    .exhaustive();
 }
 
 function getConfig(): GetConfigResult {
-  const configPath = `${PATH_TO_EXECUTABLE}/${CONFIG_NAME}`;
   try {
+    const file = fs.readFileSync(CONFIG_FILE_PATH).toString("utf-8");
     return {
       type: "Ok",
-      data: JSON.parse(fs.readFileSync(configPath).toString("utf-8")) as Config,
+      data: JSON.parse(file) as Config,
     };
   } catch (e) {
     if (e) {
@@ -80,7 +103,7 @@ function getConfig(): GetConfigResult {
           const result = (e as NodeJS.ErrnoException).code;
           if (result === "ENOENT") {
             const config = createDefaultConfig();
-            fs.writeFileSync(configPath, JSON.stringify(config, null, 4));
+            fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 4));
             return { type: "Ok", data: config };
           }
         } else {

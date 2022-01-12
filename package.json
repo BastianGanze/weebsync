@@ -23,6 +23,7 @@
     "ts-node": "^10.4.0"
   },
   "dependencies": {
+    "chokidar": "^3.5.2",
     "ftp": "https://github.com/icetee/node-ftp.git",
     "handlebars": "^4.7.7",
     "inquirer": "^8.2.0",

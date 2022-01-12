@@ -1,17 +1,47 @@
-import { Config, getConfigOrExit } from "./config";
+import {
+  Config,
+  CONFIG_FILE_PATH,
+  loadConfig,
+  waitForCorrectConfig,
+} from "./config";
 import { createFTPClient } from "./ftp";
 import { ui } from "./ui";
 import { sync } from "./sync";
 import { setupTemplateHelper } from "./template";
 import { getSystrayOrExit } from "./systray";
 import { match, select } from "ts-pattern";
+import chokidar from "chokidar";
 
 let syncInProgress = false;
+let configUpdateInProgress = false;
 
 async function start() {
   let autoSyncInterval: NodeJS.Timer;
 
-  const config = await getConfigOrExit();
+  let config: Config = await waitForCorrectConfig();
+
+  const configWatcher = chokidar.watch(CONFIG_FILE_PATH);
+  configWatcher.on("change", async (oath) => {
+    if (configUpdateInProgress) {
+      return;
+    }
+
+    ui.log.write(`"${oath}" changed, trying to update configuration.`);
+    configUpdateInProgress = true;
+    if (syncInProgress) {
+      ui.log.write("Sync is in progress, won't update configuration now.");
+      configUpdateInProgress = false;
+      return;
+    }
+    const tmpConfig = await loadConfig();
+    if (tmpConfig) {
+      config = tmpConfig;
+      ui.log.write("Config successfully updated.");
+    } else {
+      ui.log.write("Config was broken, will keep the old config for now.");
+    }
+    configUpdateInProgress = false;
+  });
 
   const systray = await getSystrayOrExit();
 
