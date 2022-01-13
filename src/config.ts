@@ -1,17 +1,39 @@
 import fs from "fs";
 import { match, select } from "ts-pattern";
 import chokidar from "chokidar";
-import { ui } from "./ui";
+import { logger } from "./ui";
+import { ApplicationState } from "./types";
 
 const CONFIG_NAME = "weebsync.config.json";
-export const PATH_TO_EXECUTABLE: string = (() => {
-  const basePath = process.execPath.includes("/")
-    ? process.execPath.split("/")
-    : process.execPath.split("\\");
-  basePath.pop();
-  return basePath.join("/");
-})();
+export const PATH_TO_EXECUTABLE: string = process.env.INIT_CWD
+  ? process.env.INIT_CWD
+  : process.env.PORTABLE_EXECUTABLE_DIR;
 export const CONFIG_FILE_PATH = `${PATH_TO_EXECUTABLE}/${CONFIG_NAME}`;
+
+export function watchConfigChanges(applicationState: ApplicationState): void {
+  const configWatcher = chokidar.watch(CONFIG_FILE_PATH);
+  configWatcher.on("change", async (oath) => {
+    if (applicationState.configUpdateInProgress) {
+      return;
+    }
+
+    logger.log(`"${oath}" changed, trying to update configuration.`);
+    applicationState.configUpdateInProgress = true;
+    if (applicationState.syncInProgress) {
+      logger.log("Sync is in progress, won't update configuration now.");
+      applicationState.configUpdateInProgress = false;
+      return;
+    }
+    const tmpConfig = await loadConfig();
+    if (tmpConfig) {
+      applicationState.config = tmpConfig;
+      logger.log("Config successfully updated.");
+    } else {
+      logger.log("Config was broken, will keep the old config for now.");
+    }
+    applicationState.configUpdateInProgress = false;
+  });
+}
 
 export interface Config {
   syncOnStart?: boolean;
@@ -56,7 +78,7 @@ export type GetConfigResult =
   | { type: "UnknownError" };
 
 export async function waitForCorrectConfig(): Promise<Config> {
-  ui.log.write("Loading configuration.");
+  logger.log("Loading configuration.");
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
     const tmpConfig = await loadConfig();
@@ -79,11 +101,11 @@ export async function loadConfig(): Promise<Config | undefined> {
   return await match(getConfig())
     .with({ type: "Ok", data: select() }, (res) => Promise.resolve(res))
     .with({ type: "UnknownError" }, async () => {
-      ui.log.write("Unknown error happened. :tehe:");
+      logger.log("Unknown error happened. :tehe:");
       return Promise.resolve(void 0);
     })
     .with({ type: "WrongConfigError", message: select() }, async (err) => {
-      ui.log.write(`Config malformed. "${err}"`);
+      logger.log(`Config malformed. "${err}"`);
       return Promise.resolve(void 0);
     })
     .exhaustive();

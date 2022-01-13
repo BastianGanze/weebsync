@@ -1,6 +1,6 @@
 import Handlebars from "handlebars";
 
-export function setupTemplateHelper() {
+export function setupTemplateHelper(): void {
   Handlebars.registerHelper(
     "renumber",
     function (num1: string, num2: number, padding: number | unknown) {
