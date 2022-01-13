@@ -8,6 +8,7 @@ export class Systray {
   public sync: SimpleEventDispatcher<void>;
   public showLogs: SimpleEventDispatcher<void>;
   public autoSync: SimpleEventDispatcher<boolean>;
+  public doubleClickTray: SimpleEventDispatcher<void>;
   initializationError: Error | undefined;
 
   constructor() {
@@ -16,6 +17,7 @@ export class Systray {
     this.showLogs = new SimpleEventDispatcher();
     this.sync = new SimpleEventDispatcher();
     this.autoSync = new SimpleEventDispatcher();
+    this.doubleClickTray = new SimpleEventDispatcher();
     try {
       this._tray = new Tray(
         nativeImage.createFromPath(path.join(__dirname, "../static/icon.ico"))
@@ -54,6 +56,9 @@ export class Systray {
       ]);
       this._tray.setToolTip("weebsync");
       this._tray.setContextMenu(contextMenu);
+      this._tray.on("double-click", () => {
+        this.doubleClickTray.dispatch();
+      });
     } catch (e) {
       this.initializationError = e;
     }

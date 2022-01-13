@@ -70,6 +70,10 @@ function hookupUiCommunication(applicationState: ApplicationState) {
       showWindow();
     });
 
+    applicationState.systray.doubleClickTray.sub(() => {
+      showWindow();
+    });
+
     applicationState.systray.sync.sub(() => syncFiles(applicationState));
 
     applicationState.systray.autoSync.sub(

@@ -1,5 +1,5 @@
 import fs from "fs";
-import { SyncMap } from "./config";
+import { Config, SyncMap } from "./config";
 import { createFTPClient, FTP } from "./ftp";
 import Handlebars from "handlebars";
 import ErrnoException = NodeJS.ErrnoException;
@@ -32,7 +32,7 @@ export async function syncFiles(
 
   logger.log(`Attempting to sync.`);
   for (const syncMap of applicationState.config.syncMaps) {
-    await sync(syncMap, ftpClient);
+    await sync(syncMap, ftpClient, applicationState.config);
   }
   logger.log(`Sync done!`);
   applicationState.syncInProgress = false;
@@ -61,8 +61,8 @@ export function toggleAutoSync(
   }
 }
 
-async function sync(syncMap: SyncMap, ftpClient: FTP) {
-  if (!createLocalFolder(syncMap.destinationFolder).created) {
+async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
+  if (!createLocalFolder(syncMap.destinationFolder).exists) {
     return;
   }
 
@@ -81,6 +81,9 @@ async function sync(syncMap: SyncMap, ftpClient: FTP) {
       const newName = template(templateData);
       const remoteFile = `${syncMap.originFolder}/${item.name}`;
       const localFile = `${syncMap.destinationFolder}/${newName}`;
+      if (config.debugFileNames) {
+        logger.log(`Renaming ${item.name} -> ${newName}`);
+      }
       if (!fs.existsSync(localFile)) {
         logger.log(`New episode detected, loading ${newName} now.`);
         await ftpClient.getFile(remoteFile, localFile, item.size);
@@ -112,12 +115,12 @@ async function sync(syncMap: SyncMap, ftpClient: FTP) {
   }
 }
 
-function createLocalFolder(destinationFolder: string): { created: boolean } {
+function createLocalFolder(destinationFolder: string): { exists: boolean } {
   try {
     if (!fs.existsSync(destinationFolder)) {
       fs.mkdirSync(destinationFolder, { recursive: true });
-      return { created: true };
     }
+    return { exists: true };
   } catch (e) {
     if (e instanceof Error) {
       if ("code" in e) {
@@ -128,5 +131,5 @@ function createLocalFolder(destinationFolder: string): { created: boolean } {
       }
     }
   }
-  return { created: false };
+  return { exists: false };
 }

@@ -38,6 +38,7 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
 export interface Config {
   syncOnStart?: boolean;
   autoSyncIntervalInMinutes?: number;
+  debugFileNames?: boolean;
   server: {
     host: string;
     port: number;
