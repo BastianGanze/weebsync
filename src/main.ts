@@ -75,6 +75,7 @@ function hookupUiCommunication(applicationState: ApplicationState) {
     applicationState.systray.autoSync.sub(
       toggleAutoSync.bind(void 0, applicationState)
     );
+    toggleAutoSync(applicationState, true);
   }
 }
 
