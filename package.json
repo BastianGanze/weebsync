@@ -5,10 +5,9 @@
   "license": "MIT",
   "main": "./build/main.js",
   "scripts": {
-    "build-main": "esbuild src/main/index.ts --platform=node --target=node16 --bundle --external:electron --outfile=build/main.js",
-    "build-preload": "esbuild src/preload/index.ts --platform=node --bundle --external:electron  --outfile=build/preload.js",
+    "build-main-preload": "node build.js",
     "build-renderer": "vite build",
-    "build": "yarn run build-renderer && yarn run build-main && yarn run build-preload",
+    "build": "yarn run build-renderer && yarn run build-main-preload",
     "watch": "tsc -w",
     "lint": "eslint -c .eslintrc --ext .ts ./src",
     "start": "npm run build && electron ./build/main.js",
