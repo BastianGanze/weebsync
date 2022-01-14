@@ -53,7 +53,6 @@ function getWindow() {
     });
 
     mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
-    mainWindow.webContents.openDevTools();
     mainWindow.webContents.on("did-finish-load", () => {
       for (const event of frontend.drainMessageBuffer()) {
         mainWindow.webContents.send(event[0], event[1]);
