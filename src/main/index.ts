@@ -24,6 +24,11 @@ async function init() {
 
   hookupUiCommunication(applicationState);
 
+  frontend.updateBottomBar({
+    downloadSpeed: "12.34 mB/s",
+    fileProgress: "100%",
+  });
+
   if (applicationState.config.syncOnStart) {
     await syncFiles(applicationState);
   }

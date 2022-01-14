@@ -1,6 +1,14 @@
+@import "@fontsource/lato/400.css";
+@import "@fontsource/lato/700.css";
+@import "@fontsource/lato/latin-400.css";
+@import "@fontsource/lato/latin-700.css";
+
 body, html {
+  font-family: 'Lato', sans-serif;
+  font-size: 10.5pt;
+  overflow-y: hidden !important;
   margin: 0;
   padding: 0;
-  background-color: black;
-  color: white;
+  background-color: #2f3136;
+  color: #b9bbbe;
 }
