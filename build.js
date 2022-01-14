@@ -1,3 +1,4 @@
+// https://github.com/evanw/esbuild/issues/1051
 const nativeNodeModulesPlugin = {
   name: "native-node-modules",
   setup(build) {

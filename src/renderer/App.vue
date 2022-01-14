@@ -86,10 +86,9 @@ export default class App extends Vue {
 
   &__button {
     -webkit-app-region: no-drag;
-    margin: 0 5px 0 0;
     border-radius: 0;
     height: 22px;
-    width: 22px;
+    width: 28px;
     transition: background-color 500ms;
   }
 

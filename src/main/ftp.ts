@@ -57,7 +57,7 @@ export class FTP {
             fileProgress: `${data.percentage.toFixed(2).padStart(6, " ")}%`,
             downloadSpeed: `${(data.speed / 1000 / 1000)
               .toFixed(3)
-              .padStart(7, " ")} mB/s`,
+              .padStart(7, " ")} MB/s`,
           });
         });
         stream.once("finish", () => {
