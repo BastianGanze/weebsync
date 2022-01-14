@@ -2,7 +2,7 @@ import Client, { ListingElement } from "ftp";
 import { Config } from "./config";
 import fs from "fs";
 import progress_stream from "progress-stream";
-import { logger } from "./ui";
+import { frontend } from "./ui";
 
 export type CreateFtpClientResult =
   | {
@@ -53,18 +53,15 @@ export class FTP {
         }
         stream.pipe(progress).pipe(fs.createWriteStream(localFilePath));
         progress.on("progress", (data) => {
-          logger.bar(
-            `${data.percentage.toFixed(2).padStart(6, " ")}% - ${(
-              data.speed /
-              1000 /
-              1000
-            )
+          frontend.updateBottomBar({
+            fileProgress: `${data.percentage.toFixed(2).padStart(6, " ")}%`,
+            downloadSpeed: `${(data.speed / 1000 / 1000)
               .toFixed(3)
-              .padStart(7, " ")} mB/s`
-          );
+              .padStart(7, " ")} mB/s`,
+          });
         });
         stream.once("finish", () => {
-          logger.bar("");
+          frontend.updateBottomBar({ fileProgress: "", downloadSpeed: "" });
           resolve();
         });
         stream.on("error", (err) => {

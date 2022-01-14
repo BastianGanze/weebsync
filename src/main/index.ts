@@ -1,12 +1,19 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 
-import { hideWindow, logger, minimizeWindow, showWindow } from "./ui";
+import {
+  hideWindow,
+  frontend,
+  minimizeWindow,
+  showWindow,
+  maximizeWindow,
+} from "./ui";
 
 import { Systray } from "./systray";
 import { waitForCorrectConfig, watchConfigChanges } from "./config";
 import { setupTemplateHelper } from "./template";
-import { ApplicationState } from "./types";
+import { AppCommand, ApplicationState } from "../shared/types";
 import { syncFiles, toggleAutoSync } from "./sync";
+import { match } from "ts-pattern";
 
 let applicationState: ApplicationState;
 
@@ -24,13 +31,17 @@ async function init() {
 
 async function setupApplication(): Promise<ApplicationState> {
   setupTemplateHelper();
-  showWindow();
 
   const config = await waitForCorrectConfig();
+
+  if (config.startAsTray !== true) {
+    showWindow();
+  }
+
   const systray = new Systray();
 
   if (systray.initializationError) {
-    logger.log(
+    frontend.log(
       `Could not load systray! ${systray.initializationError.message}`
     );
     return {
@@ -49,16 +60,13 @@ async function setupApplication(): Promise<ApplicationState> {
 }
 
 function hookupUiCommunication(applicationState: ApplicationState) {
-  ipcMain.on("command", (_, data) => {
-    if (data === "minimize") {
-      minimizeWindow();
-    }
-    if (data === "minimize-to-tray") {
-      hideWindow();
-    }
-    if (data === "exit") {
-      app.exit(0);
-    }
+  ipcMain.on("command", (_, command: AppCommand) => {
+    match(command)
+      .with("minimize", () => minimizeWindow())
+      .with("minimize-to-tray", () => hideWindow())
+      .with("exit", () => app.exit(0))
+      .with("maximize", () => maximizeWindow())
+      .exhaustive();
   });
 
   if (applicationState.systray) {

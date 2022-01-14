@@ -1,11 +1,14 @@
 import { BrowserWindow } from "electron";
 import path from "path";
 import { SimpleEventDispatcher } from "strongly-typed-events";
+import { BottomBarUpdateEvent, CommunicationChannels } from "../shared/types";
 
-export class Logger {
+export class Frontend {
   bufferMessagesForFirstLoad: boolean;
-  messages: Array<[string, string]>;
-  onLog: SimpleEventDispatcher<[string, string]>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  messages: Array<[CommunicationChannels, any]>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLog: SimpleEventDispatcher<[CommunicationChannels, any]>;
 
   constructor() {
     this.bufferMessagesForFirstLoad = true;
@@ -20,11 +23,11 @@ export class Logger {
     this.onLog.dispatch(["log", message]);
   }
 
-  bar(message: string): void {
+  updateBottomBar(event: BottomBarUpdateEvent): void {
     if (this.bufferMessagesForFirstLoad) {
-      this.messages.push(["bar", message]);
+      this.messages.push(["updateBottomBar", event]);
     }
-    this.onLog.dispatch(["bar", message]);
+    this.onLog.dispatch(["updateBottomBar", event]);
   }
 
   drainMessageBuffer(): Array<[string, string]> {
@@ -34,7 +37,7 @@ export class Logger {
   }
 }
 
-export const logger = new Logger();
+export const frontend = new Frontend();
 
 let mainWindow: BrowserWindow;
 
@@ -49,15 +52,15 @@ function getWindow() {
       width: 800,
     });
 
-    mainWindow.loadFile(path.join(__dirname, "../index.html"));
-
+    mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
+    mainWindow.webContents.openDevTools();
     mainWindow.webContents.on("did-finish-load", () => {
-      for (const event of logger.drainMessageBuffer()) {
+      for (const event of frontend.drainMessageBuffer()) {
         mainWindow.webContents.send(event[0], event[1]);
       }
-      logger.bufferMessagesForFirstLoad = false;
+      frontend.bufferMessagesForFirstLoad = false;
 
-      logger.onLog.sub((event) => {
+      frontend.onLog.sub((event) => {
         mainWindow.webContents.send(event[0], event[1]);
       });
     });
@@ -72,6 +75,15 @@ export function showWindow(): void {
 
 export function hideWindow(): void {
   getWindow().hide();
+}
+
+export function maximizeWindow(): void {
+  const mainWindow = getWindow();
+  if (!mainWindow.isMaximized()) {
+    mainWindow.maximize();
+  } else {
+    mainWindow.restore();
+  }
 }
 
 export function minimizeWindow(): void {

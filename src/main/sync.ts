@@ -3,15 +3,17 @@ import { Config, SyncMap } from "./config";
 import { createFTPClient, FTP } from "./ftp";
 import Handlebars from "handlebars";
 import ErrnoException = NodeJS.ErrnoException;
-import { logger } from "./ui";
-import { ApplicationState } from "./types";
+import { frontend } from "./ui";
+import { ApplicationState } from "../shared/types";
 import { match, select } from "ts-pattern";
 
 export async function syncFiles(
   applicationState: ApplicationState
 ): Promise<void> {
   if (applicationState.syncInProgress) {
-    logger.log("Tried to start another sync while sync was still in progress!");
+    frontend.log(
+      "Tried to start another sync while sync was still in progress!"
+    );
     return;
   }
 
@@ -19,22 +21,22 @@ export async function syncFiles(
   const ftpClient = await match(await createFTPClient(applicationState.config))
     .with({ type: "Ok", data: select() }, (res) => Promise.resolve(res))
     .with({ type: "ConnectionError", message: select() }, async (err) => {
-      logger.log(`FTP Connection error: ${err}"`);
+      frontend.log(`FTP Connection error: ${err}"`);
       return void 0;
     })
     .exhaustive();
 
   if (ftpClient === void 0) {
     applicationState.syncInProgress = false;
-    logger.log(`Could not sync.`);
+    frontend.log(`Could not sync.`);
     return;
   }
 
-  logger.log(`Attempting to sync.`);
+  frontend.log(`Attempting to sync.`);
   for (const syncMap of applicationState.config.syncMaps) {
     await sync(syncMap, ftpClient, applicationState.config);
   }
-  logger.log(`Sync done!`);
+  frontend.log(`Sync done!`);
   applicationState.syncInProgress = false;
   ftpClient.close();
 }
@@ -45,19 +47,25 @@ export function toggleAutoSync(
 ): void {
   if (applicationState.autoSyncIntervalHandler) {
     clearInterval(applicationState.autoSyncIntervalHandler);
+    delete applicationState.autoSyncIntervalHandler;
   }
 
   if (enabled) {
-    const interval = applicationState.config.autoSyncIntervalInMinutes
-      ? applicationState.config.autoSyncIntervalInMinutes
-      : 30;
-    logger.log(`AutoSync enabled! Interval is ${interval} minutes.`);
+    const interval = Math.max(
+      applicationState.config.autoSyncIntervalInMinutes
+        ? applicationState.config.autoSyncIntervalInMinutes
+        : 30,
+      5
+    );
+
+    frontend.log(`AutoSync enabled! Interval is ${interval} minutes.`);
+
     applicationState.autoSyncIntervalHandler = setInterval(
       () => syncFiles(applicationState),
       interval * 60 * 1000
     );
   } else {
-    logger.log("AutoSync disabled!");
+    frontend.log("AutoSync disabled!");
   }
 }
 
@@ -82,15 +90,15 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
       const remoteFile = `${syncMap.originFolder}/${item.name}`;
       const localFile = `${syncMap.destinationFolder}/${newName}`;
       if (config.debugFileNames) {
-        logger.log(`Renaming ${item.name} -> ${newName}`);
+        frontend.log(`Renaming ${item.name} -> ${newName}`);
       }
       if (!fs.existsSync(localFile)) {
-        logger.log(`New episode detected, loading ${newName} now.`);
+        frontend.log(`New episode detected, loading ${newName} now.`);
         await ftpClient.getFile(remoteFile, localFile, item.size);
       } else {
         const stat = fs.statSync(localFile);
         if (stat.size != item.size) {
-          logger.log(
+          frontend.log(
             `Episode ${newName} already existed but didn't load correctly, attempting to reload now.`
           );
           await ftpClient.getFile(remoteFile, localFile, item.size);
@@ -102,15 +110,15 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
       if ("code" in e) {
         const error = e as { code: number };
         if (error.code == 550) {
-          logger.log(
+          frontend.log(
             `Directory "${syncMap.originFolder}" does not exist on remote.`
           );
         }
       } else {
-        logger.log(`Unknown error ${e.message}`);
+        frontend.log(`Unknown error ${e.message}`);
       }
     } else {
-      logger.log(`Unknown error ${e}`);
+      frontend.log(`Unknown error ${e}`);
     }
   }
 }
@@ -125,7 +133,7 @@ function createLocalFolder(destinationFolder: string): { exists: boolean } {
     if (e instanceof Error) {
       if ("code" in e) {
         const error = e as ErrnoException;
-        logger.log(
+        frontend.log(
           `Could not create folder on file system, "${destinationFolder}" is faulty: "${error.message}"`
         );
       }

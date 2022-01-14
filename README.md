@@ -2,13 +2,16 @@
 
 # Example Config
 
-`syncOnStart`, `autoSyncIntervalInMinutes`, `debugFileNames` are optional. Default values below.
+`syncOnStart`, `autoSyncIntervalInMinutes`, `debugFileNames` and `startAsTray` are optional. Default values below.
+
+`autoSyncIntervalInMinutes` minimal value is 5 Minutes because of spam.
 
 ```json
 {
   "syncOnStart": true,
   "autoSyncIntervalInMinutes": 30,
   "debugFileNames": false,
+  "startAsTray": false,
     "server": {
         "host": "",
         "port": 21,

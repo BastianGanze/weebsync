@@ -1,8 +1,9 @@
 import fs from "fs";
 import { match, select } from "ts-pattern";
 import chokidar from "chokidar";
-import { logger } from "./ui";
-import { ApplicationState } from "./types";
+import { frontend } from "./ui";
+import { ApplicationState } from "../shared/types";
+import { toggleAutoSync } from "./sync";
 
 const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.env.INIT_CWD
@@ -17,19 +18,22 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
       return;
     }
 
-    logger.log(`"${oath}" changed, trying to update configuration.`);
+    frontend.log(`"${oath}" changed, trying to update configuration.`);
     applicationState.configUpdateInProgress = true;
     if (applicationState.syncInProgress) {
-      logger.log("Sync is in progress, won't update configuration now.");
+      frontend.log("Sync is in progress, won't update configuration now.");
       applicationState.configUpdateInProgress = false;
       return;
     }
     const tmpConfig = await loadConfig();
     if (tmpConfig) {
       applicationState.config = tmpConfig;
-      logger.log("Config successfully updated.");
+      frontend.log("Config successfully updated.");
+      if (applicationState.autoSyncIntervalHandler) {
+        toggleAutoSync(applicationState, true);
+      }
     } else {
-      logger.log("Config was broken, will keep the old config for now.");
+      frontend.log("Config was broken, will keep the old config for now.");
     }
     applicationState.configUpdateInProgress = false;
   });
@@ -39,6 +43,7 @@ export interface Config {
   syncOnStart?: boolean;
   autoSyncIntervalInMinutes?: number;
   debugFileNames?: boolean;
+  startAsTray?: boolean;
   server: {
     host: string;
     port: number;
@@ -79,7 +84,7 @@ export type GetConfigResult =
   | { type: "UnknownError" };
 
 export async function waitForCorrectConfig(): Promise<Config> {
-  logger.log("Loading configuration.");
+  frontend.log("Loading configuration.");
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
     const tmpConfig = await loadConfig();
@@ -102,11 +107,11 @@ export async function loadConfig(): Promise<Config | undefined> {
   return await match(getConfig())
     .with({ type: "Ok", data: select() }, (res) => Promise.resolve(res))
     .with({ type: "UnknownError" }, async () => {
-      logger.log("Unknown error happened. :tehe:");
+      frontend.log("Unknown error happened. :tehe:");
       return Promise.resolve(void 0);
     })
     .with({ type: "WrongConfigError", message: select() }, async (err) => {
-      logger.log(`Config malformed. "${err}"`);
+      frontend.log(`Config malformed. "${err}"`);
       return Promise.resolve(void 0);
     })
     .exhaustive();
