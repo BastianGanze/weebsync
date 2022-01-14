@@ -3,7 +3,7 @@ import { match, select } from "ts-pattern";
 import chokidar from "chokidar";
 import { frontend } from "./ui";
 import { ApplicationState } from "../shared/types";
-import { toggleAutoSync } from "./sync";
+import { syncFiles, toggleAutoSync } from "./sync";
 
 const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.env.INIT_CWD
@@ -32,6 +32,7 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
       if (applicationState.autoSyncIntervalHandler) {
         toggleAutoSync(applicationState, true);
       }
+      syncFiles(applicationState);
     } else {
       frontend.log("Config was broken, will keep the old config for now.");
     }
