@@ -1,5 +1,5 @@
 <template>
-  <div class="main-app">
+  <v-app class="main-app">
     <div class="title-bar">
       <v-btn
         icon
@@ -47,31 +47,130 @@
             <div class="log-item" v-for="log in logMessages">{{ log }}</div>
           </perfect-scrollbar></v-tab-item
         >
-        <v-tab-item class="app-tabs-content__tab-content" :value="'tab-2'"
-          ><perfect-scrollbar class="config">
-            <div>Coming soon.</div>
-          </perfect-scrollbar></v-tab-item
-        >
+        <v-tab-item class="app-tabs-content__tab-content" :value="'tab-2'">
+          <perfect-scrollbar class="config">
+            <template v-if="config">
+              <v-container fluid>
+                <v-row>
+                  <v-col cols="12" sm="12">
+                    <v-btn
+                      small
+                      class="config__save-button"
+                      @click="sendConfig()"
+                      >Save</v-btn
+                    >
+                  </v-col>
+                </v-row>
+                <v-row
+                  justify-sm="space-between"
+                  justify-md="start"
+                  justify-lg="start"
+                >
+                  <v-col cols="12" sm="4" md="3" lg="2">
+                    <v-switch
+                      class="config__switch"
+                      dense
+                      hide-details
+                      v-model="config.syncOnStart"
+                      label="Sync on start"
+                    ></v-switch>
+                  </v-col>
+                  <v-col cols="12" sm="4" md="3" lg="2">
+                    <v-switch
+                      class="config__switch"
+                      dense
+                      hide-details
+                      v-model="config.startAsTray"
+                      label="Start as tray"
+                    ></v-switch>
+                  </v-col>
+                  <v-col cols="12" sm="4" md="3" lg="2">
+                    <v-switch
+                      class="config__switch"
+                      dense
+                      v-model="config.debugFileNames"
+                      label="Debug file names"
+                    ></v-switch>
+                  </v-col>
+                </v-row>
+                <v-row justify="start">
+                  <v-col cols="12" sm="6" md="3"
+                    ><v-text-field
+                      v-model="config.autoSyncIntervalInMinutes"
+                      dense
+                      hide-details="auto"
+                      :rules="syncIntervalRules"
+                      type="number"
+                      label="Auto sync interval in minutes"
+                      class="config__text-field"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row justify="start">
+                  <v-col cols="12" sm="6" md="3"
+                    ><v-text-field
+                      v-model="config.server.host"
+                      dense
+                      hide-details
+                      label="Host"
+                      class="config__text-field"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3">
+                    <v-text-field
+                      v-model="config.server.port"
+                      dense
+                      hide-details
+                      type="number"
+                      label="Port"
+                      class="config__text-field"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3"
+                    ><v-text-field
+                      v-model="config.server.user"
+                      dense
+                      hide-details
+                      label="User"
+                      class="config__text-field"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3"
+                    ><v-text-field
+                      v-model="config.server.password"
+                      dense
+                      hide-details
+                      type="password"
+                      label="Password"
+                      class="config__text-field"
+                    ></v-text-field
+                  ></v-col>
+                </v-row>
+              </v-container> </template></perfect-scrollbar
+        ></v-tab-item>
       </v-tabs-items>
     </div>
     <div class="bottom-bar">
       <div class="bottom-bar__file-progress">{{ fileProgress }}</div>
       <div class="bottom-bar__download-speed">{{ downloadSpeed }}</div>
     </div>
-  </div>
+  </v-app>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { AppCommand, BottomBarUpdateEvent } from "../shared/types";
+import { AppCommand } from "../shared/types";
+import { Config } from "../main/config";
 
 @Component({})
 export default class App extends Vue {
   logMessages: string[];
   fileProgress: string;
   downloadSpeed: string;
+  config?: Config;
   tab: null;
+  syncIntervalRules: Array<(value: number) => string | boolean>;
 
   constructor() {
     super();
@@ -79,6 +178,11 @@ export default class App extends Vue {
     this.logMessages = [];
     this.fileProgress = "";
     this.downloadSpeed = "";
+    this.syncIntervalRules = [
+      (v) => {
+        return v >= 5 || "Must be at least 5 minutes.";
+      },
+    ];
   }
 
   created() {
@@ -86,7 +190,11 @@ export default class App extends Vue {
       this.logMessages.push(data);
     });
 
-    window.api.receive("updateBottomBar", (data: BottomBarUpdateEvent) => {
+    window.api.receive("config", (data: Config) => {
+      this.config = data;
+    });
+
+    window.api.receive("updateBottomBar", (data) => {
       this.fileProgress = data.fileProgress;
       this.downloadSpeed = data.downloadSpeed;
     });
@@ -95,13 +203,31 @@ export default class App extends Vue {
   sendCommand(command: AppCommand) {
     window.api.send("command", command);
   }
+
+  sendConfig() {
+    window.api.send("config", this.config);
+  }
 }
 </script>
 
 <style scoped lang="scss">
+.main-app {
+  color: inherit;
+  background: none;
+}
+
 .log,
 .config {
   height: 100%;
+}
+
+.config {
+  &__switch {
+    margin: 0;
+  }
+  &__text-field {
+    margin: 0;
+  }
 }
 
 .content-container {

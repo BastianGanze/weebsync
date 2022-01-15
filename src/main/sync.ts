@@ -3,17 +3,18 @@ import { Config, SyncMap } from "./config";
 import { createFTPClient, FTP } from "./ftp";
 import Handlebars from "handlebars";
 import ErrnoException = NodeJS.ErrnoException;
-import { frontend } from "./ui";
 import { ApplicationState } from "../shared/types";
 import { match, select } from "ts-pattern";
+import { communication } from "./communication";
 
 export async function syncFiles(
   applicationState: ApplicationState
 ): Promise<void> {
   if (applicationState.syncInProgress) {
-    frontend.log(
-      "Tried to start another sync while sync was still in progress!"
-    );
+    communication.dispatch({
+      channel: "log",
+      content: "Tried to start another sync while sync was still in progress!",
+    });
     return;
   }
 
@@ -21,22 +22,25 @@ export async function syncFiles(
   const ftpClient = await match(await createFTPClient(applicationState.config))
     .with({ type: "Ok", data: select() }, (res) => Promise.resolve(res))
     .with({ type: "ConnectionError", message: select() }, async (err) => {
-      frontend.log(`FTP Connection error: ${err}"`);
+      communication.dispatch({
+        channel: "log",
+        content: `FTP Connection error: ${err}"`,
+      });
       return void 0;
     })
     .exhaustive();
 
   if (ftpClient === void 0) {
     applicationState.syncInProgress = false;
-    frontend.log(`Could not sync.`);
+    communication.dispatch({ channel: "log", content: `Could not sync.` });
     return;
   }
 
-  frontend.log(`Attempting to sync.`);
+  communication.dispatch({ channel: "log", content: `Attempting to sync.` });
   for (const syncMap of applicationState.config.syncMaps) {
     await sync(syncMap, ftpClient, applicationState.config);
   }
-  frontend.log(`Sync done!`);
+  communication.dispatch({ channel: "log", content: `Sync done!` });
   applicationState.syncInProgress = false;
   ftpClient.close();
 }
@@ -58,14 +62,17 @@ export function toggleAutoSync(
       5
     );
 
-    frontend.log(`AutoSync enabled! Interval is ${interval} minutes.`);
+    communication.dispatch({
+      channel: "log",
+      content: `AutoSync enabled! Interval is ${interval} minutes.`,
+    });
 
     applicationState.autoSyncIntervalHandler = setInterval(
       () => syncFiles(applicationState),
       interval * 60 * 1000
     );
   } else {
-    frontend.log("AutoSync disabled!");
+    communication.dispatch({ channel: "log", content: "AutoSync disabled!" });
   }
 }
 
@@ -90,17 +97,24 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
       const remoteFile = `${syncMap.originFolder}/${item.name}`;
       const localFile = `${syncMap.destinationFolder}/${newName}`;
       if (config.debugFileNames) {
-        frontend.log(`Renaming ${item.name} -> ${newName}`);
+        communication.dispatch({
+          channel: "log",
+          content: `Renaming ${item.name} -> ${newName}`,
+        });
       }
       if (!fs.existsSync(localFile)) {
-        frontend.log(`New episode detected, loading ${newName} now.`);
+        communication.dispatch({
+          channel: "log",
+          content: `New episode detected, loading ${newName} now.`,
+        });
         await ftpClient.getFile(remoteFile, localFile, item.size);
       } else {
         const stat = fs.statSync(localFile);
         if (stat.size != item.size) {
-          frontend.log(
-            `Episode ${newName} already existed but didn't load correctly, attempting to reload now.`
-          );
+          communication.dispatch({
+            channel: "log",
+            content: `Episode ${newName} already existed but didn't load correctly, attempting to reload now.`,
+          });
           await ftpClient.getFile(remoteFile, localFile, item.size);
         }
       }
@@ -110,15 +124,19 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
       if ("code" in e) {
         const error = e as { code: number };
         if (error.code == 550) {
-          frontend.log(
-            `Directory "${syncMap.originFolder}" does not exist on remote.`
-          );
+          communication.dispatch({
+            channel: "log",
+            content: `Directory "${syncMap.originFolder}" does not exist on remote.`,
+          });
         }
       } else {
-        frontend.log(`Unknown error ${e.message}`);
+        communication.dispatch({
+          channel: "log",
+          content: `Unknown error ${e.message}`,
+        });
       }
     } else {
-      frontend.log(`Unknown error ${e}`);
+      communication.dispatch({ channel: "log", content: `Unknown error ${e}` });
     }
   }
 }
@@ -133,9 +151,10 @@ function createLocalFolder(destinationFolder: string): { exists: boolean } {
     if (e instanceof Error) {
       if ("code" in e) {
         const error = e as ErrnoException;
-        frontend.log(
-          `Could not create folder on file system, "${destinationFolder}" is faulty: "${error.message}"`
-        );
+        communication.dispatch({
+          channel: "log",
+          content: `Could not create folder on file system, "${destinationFolder}" is faulty: "${error.message}"`,
+        });
       }
     }
   }

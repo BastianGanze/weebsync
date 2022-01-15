@@ -12,3 +12,19 @@ body, html {
   background-color: #2f3136;
   color: #b9bbbe;
 }
+
+$font-family: 'Lato';
+
+.v-application {
+[class*='text-'] {
+  color: #b9bbbe;
+  font-family: $font-family, sans-serif !important;
+}
+  .v-label {
+    font-size: 10.5pt !important;
+  }
+  input {
+    color: #b9bbbe;
+  }
+  font-family: $font-family, sans-serif !important;
+}

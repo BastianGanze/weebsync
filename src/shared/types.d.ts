@@ -1,17 +1,33 @@
 import { Systray } from "../main/systray";
 import { Config } from "../main/config";
 
-export type CommunicationChannels = "log" | "updateBottomBar" | "command";
+export type CommunicationChannelMessage =
+  | { channel: "log"; content: string }
+  | { channel: "updateBottomBar"; content: BottomBarUpdateEvent }
+  | { channel: "command"; content: void }
+  | { channel: "config"; content: Config };
+
+type ItemExtractor<Match extends CommunicationChannelMessage["channel"]> =
+  Extract<CommunicationChannelMessage, { channel: Match }>;
 
 declare global {
   interface Window {
     api: {
-      send: (channel: CommunicationChannels, data: string) => void;
-      receive: (
-        channel: CommunicationChannels,
+      send<
+        K extends CommunicationChannelMessage["channel"],
+        T = ItemExtractor<K>["content"]
+      >(
+        channel: K,
+        content: T
+      ): void;
+      receive<
+        K extends CommunicationChannelMessage["channel"],
+        T = ItemExtractor<K>["content"]
+      >(
+        channel: K,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        func: (...args: any[]) => void
-      ) => void;
+        func: (content: T) => void
+      ): void;
     };
   }
 }
