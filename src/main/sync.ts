@@ -91,6 +91,14 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
         for (let i = 0; i < match.length; i++) {
           templateData["$" + i] = match[i];
         }
+      } else {
+        if (config.debugFileNames) {
+          communication.dispatch({
+            channel: "log",
+            content: `File did not match regex "${item.name}". Not loading.`,
+          });
+        }
+        continue;
       }
 
       const newName = template(templateData);
