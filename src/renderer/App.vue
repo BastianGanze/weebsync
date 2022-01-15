@@ -30,9 +30,30 @@
         ><v-img contain max-height="11" src="Schließen.png"
       /></v-btn>
     </div>
-    <perfect-scrollbar class="log">
-      <div class="log-item" v-for="log in logMessages">{{ log }}</div>
-    </perfect-scrollbar>
+    <div class="content-container">
+      <v-tabs
+        class="app-tabs"
+        v-model="tab"
+        hide-slider
+        background-color="transparent"
+        dark
+      >
+        <v-tab class="app-tabs__tab-item" href="#tab-1">Console</v-tab>
+        <v-tab class="app-tabs__tab-item" href="#tab-2">Config</v-tab>
+      </v-tabs>
+      <v-tabs-items class="app-tabs-content" v-model="tab">
+        <v-tab-item class="app-tabs-content__tab-content" :value="'tab-1'"
+          ><perfect-scrollbar class="log">
+            <div class="log-item" v-for="log in logMessages">{{ log }}</div>
+          </perfect-scrollbar></v-tab-item
+        >
+        <v-tab-item class="app-tabs-content__tab-content" :value="'tab-2'"
+          ><perfect-scrollbar class="config">
+            <div>Coming soon.</div>
+          </perfect-scrollbar></v-tab-item
+        >
+      </v-tabs-items>
+    </div>
     <div class="bottom-bar">
       <div class="bottom-bar__file-progress">{{ fileProgress }}</div>
       <div class="bottom-bar__download-speed">{{ downloadSpeed }}</div>
@@ -50,9 +71,11 @@ export default class App extends Vue {
   logMessages: string[];
   fileProgress: string;
   downloadSpeed: string;
+  tab: null;
 
   constructor() {
     super();
+    this.tab = null;
     this.logMessages = [];
     this.fileProgress = "";
     this.downloadSpeed = "";
@@ -76,6 +99,55 @@ export default class App extends Vue {
 </script>
 
 <style scoped lang="scss">
+.log,
+.config {
+  height: 100%;
+}
+
+.content-container {
+  display: flex;
+  flex-flow: column;
+  height: auto;
+  position: absolute;
+  top: 27px;
+  left: 5px;
+  bottom: 27px;
+  right: 5px;
+}
+
+.app-tabs::v-deep.v-tabs > .v-tabs-bar {
+  background: none;
+  height: 30px;
+}
+
+.app-tabs {
+  flex: 0 1 auto;
+  &__tab-item {
+    padding: 8px;
+    min-width: auto;
+    min-height: auto;
+    text-transform: none;
+    letter-spacing: inherit;
+    font-weight: bold;
+  }
+  &__tab-item::v-deep.v-tab--active {
+    background-color: #282a2d;
+  }
+}
+
+.app-tabs-content {
+  &::v-deep .v-window__container {
+    height: 100%;
+  }
+  background-color: #282a2d;
+  flex: 1 1 auto;
+  padding: 8px 0 0 8px;
+
+  &__tab-content {
+    height: 100%;
+  }
+}
+
 .title-bar {
   background-color: #202225;
   display: flex;
@@ -95,22 +167,9 @@ export default class App extends Vue {
   &__button:hover {
     background-color: #373b42;
   }
-
   &__button-exit:hover {
     background-color: #ed4245;
   }
-}
-
-.log {
-  max-height: 100%;
-  position: absolute;
-  background-color: #282a2d;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  margin: 27px 5px 27px 5px;
-  padding: 8px 0 0 8px;
 }
 
 .bottom-bar {
