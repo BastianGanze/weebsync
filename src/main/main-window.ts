@@ -13,6 +13,8 @@ function getWindow() {
         preload: path.join(__dirname, "preload.js"),
       },
       width: 800,
+      minWidth: 400,
+      minHeight: 400,
     });
 
     mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
