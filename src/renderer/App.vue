@@ -51,16 +51,6 @@
           <perfect-scrollbar class="config">
             <template v-if="config">
               <v-container fluid>
-                <v-row>
-                  <v-col cols="12" sm="12">
-                    <v-btn
-                      small
-                      class="config__save-button"
-                      @click="sendConfig()"
-                      >Save</v-btn
-                    >
-                  </v-col>
-                </v-row>
                 <v-row
                   justify-sm="space-between"
                   justify-md="start"
@@ -146,8 +136,16 @@
                     ></v-text-field
                   ></v-col>
                 </v-row>
-              </v-container> </template></perfect-scrollbar
-        ></v-tab-item>
+              </v-container> </template
+          ></perfect-scrollbar>
+          <v-btn
+            small
+            elevation="0"
+            class="config__save-button"
+            @click="sendConfig()"
+            >Save</v-btn
+          >
+        </v-tab-item>
       </v-tabs-items>
     </div>
     <div class="bottom-bar">
@@ -222,6 +220,11 @@ export default class App extends Vue {
 }
 
 .config {
+  &__save-button {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
   &__switch {
     margin: 0;
   }
