@@ -17,8 +17,6 @@ function getWindow() {
 
     mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
 
-    mainWindow.webContents.openDevTools();
-
     mainWindow.webContents.on("did-finish-load", () => {
       for (const event of communication.drainMessageBuffer()) {
         mainWindow.webContents.send(event.channel, event.content);
