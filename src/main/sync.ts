@@ -121,7 +121,7 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
         if (stat.size != item.size) {
           communication.dispatch({
             channel: "log",
-            content: `Episode ${newName} already existed but didn't load correctly, attempting to reload now.`,
+            content: `Episode ${newName} was updated or didn't load correctly. Loading again.`,
           });
           await ftpClient.getFile(remoteFile, localFile, item.size);
         }
