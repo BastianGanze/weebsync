@@ -185,7 +185,7 @@ export default class App extends Vue {
 
   created() {
     window.api.receive("log", (data: string) => {
-      this.logMessages.push(data);
+      this.logMessages.unshift(data);
     });
 
     window.api.receive("config", (data: Config) => {
