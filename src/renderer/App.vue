@@ -6,28 +6,44 @@
         x-small
         class="title-bar__button"
         @click="sendCommand('minimize-to-tray')"
-        ><v-img contain max-height="1" src="Tray.png"
+        ><v-img
+          class="title-bar__button-image"
+          contain
+          max-height="1"
+          src="Tray.png"
       /></v-btn>
       <v-btn
         icon
         x-small
         class="title-bar__button"
         @click="sendCommand('minimize')"
-        ><v-img contain max-height="1" src="Minimieren.png"
+        ><v-img
+          class="title-bar__button-image"
+          contain
+          max-height="1"
+          src="Minimieren.png"
       /></v-btn>
       <v-btn
         icon
         x-small
         class="title-bar__button"
         @click="sendCommand('maximize')"
-        ><v-img contain max-height="10" src="Maximieren.png"
+        ><v-img
+          class="title-bar__button-image"
+          contain
+          max-height="10"
+          src="Maximieren.png"
       /></v-btn>
       <v-btn
         icon
         x-small
         class="title-bar__button title-bar__button-exit"
         @click="sendCommand('exit')"
-        ><v-img contain max-height="11" src="Schließen.png"
+        ><v-img
+          class="title-bar__button-image"
+          contain
+          max-height="11"
+          src="Schließen.png"
       /></v-btn>
     </div>
     <div class="content-container">
@@ -290,7 +306,16 @@ export default class App extends Vue {
     border-radius: 0;
     height: 22px;
     width: 28px;
-    transition: background-color 500ms;
+    transition: all 500ms;
+  }
+
+  &__button-image {
+    filter: brightness(1);
+    transition: all 500ms;
+  }
+
+  &__button:hover &__button-image {
+    filter: brightness(1.5);
   }
 
   &__button:hover {
