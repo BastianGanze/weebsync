@@ -41,4 +41,4 @@ Example for `syncMap`:
 ```
 
 For `fileRenameTemplate` you can use the regex groups by their number with double curly brackets e.g. `{{$1}}`.
-There is a helper method to renumber `{{renumber $1 13}}` where `$1` is the first regex group of the `fileRegex` that matches and `13` is the number that will be subtracted from that regex group. Obviously `$1` should only match a number then.
+There is a helper method to renumber `{{renumber $1 13}}` where `$1` is the first regex group of the `fileRegex` that matches and `13` is the number that will be subtracted from that regex group. Obviously `$1` should only match a number then. That means for the above example that if `$1` is 15, the final replacement will be `02` because 15-13 is 02.
