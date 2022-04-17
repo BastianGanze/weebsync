@@ -1,6 +1,6 @@
 {
   "name": "weebsync",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
   "main": "./build/main.js",
@@ -53,6 +53,7 @@
   },
   "dependencies": {
     "@fontsource/lato": "^4.5.0",
+    "@mdi/font": "^6.6.96",
     "chokidar": "^3.5.2",
     "ftp": "https://github.com/icetee/node-ftp.git",
     "handlebars": "^4.7.7",

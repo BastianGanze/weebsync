@@ -30,7 +30,7 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
       applicationState.configUpdateInProgress = false;
       return;
     }
-    const tmpConfig = await loadConfig();
+    const tmpConfig = loadConfig();
     if (tmpConfig) {
       applicationState.config = tmpConfig;
       communication.dispatch({
@@ -101,13 +101,13 @@ export async function waitForCorrectConfig(): Promise<Config> {
   communication.dispatch({ channel: "log", content: "Loading configuration." });
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
-    const tmpConfig = await loadConfig();
+    const tmpConfig = loadConfig();
     if (tmpConfig) {
       resolve(tmpConfig);
     } else {
       const watcher = chokidar.watch(CONFIG_FILE_PATH);
       watcher.on("change", async () => {
-        const tmpConfig = await loadConfig();
+        const tmpConfig = loadConfig();
         if (tmpConfig) {
           await watcher.close();
           resolve(tmpConfig);
@@ -117,22 +117,22 @@ export async function waitForCorrectConfig(): Promise<Config> {
   });
 }
 
-export async function loadConfig(): Promise<Config | undefined> {
-  return await match(getConfig())
-    .with({ type: "Ok", data: select() }, (res) => Promise.resolve(res))
-    .with({ type: "UnknownError" }, async () => {
+export function loadConfig(): Config | undefined {
+  return match(getConfig())
+    .with({ type: "Ok", data: select() }, (res) => res)
+    .with({ type: "UnknownError" }, () => {
       communication.dispatch({
         channel: "log",
         content: "Unknown error happened. :tehe:",
       });
-      return Promise.resolve(void 0);
+      return void 0;
     })
-    .with({ type: "WrongConfigError", message: select() }, async (err) => {
+    .with({ type: "WrongConfigError", message: select() }, (err) => {
       communication.dispatch({
         channel: "log",
         content: `Config malformed. "${err}"`,
       });
-      return Promise.resolve(void 0);
+      return void 0;
     })
     .exhaustive();
 }
@@ -153,9 +153,11 @@ export function saveConfig(config: Config): void {
 function getConfig(): GetConfigResult {
   try {
     const file = fs.readFileSync(CONFIG_FILE_PATH).toString("utf-8");
+    const config = JSON.parse(file) as Config;
+
     return {
       type: "Ok",
-      data: JSON.parse(file) as Config,
+      data: config,
     };
   } catch (e) {
     if (e) {
