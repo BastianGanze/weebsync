@@ -174,7 +174,7 @@
             <v-expansion-panels multiple accordion>
               <v-expansion-panel
                   class="sync__panel"
-                  v-for="(syncItem, index) in syncMaps"
+                  v-for="(syncItem, index) in config.syncMaps"
                   :key="syncItem"
               >
                 <v-expansion-panel-header>
@@ -285,10 +285,6 @@ export default class App extends Vue {
   config?: Config;
   tab: null;
   syncIntervalRules: Array<(value: number) => string | boolean>;
-
-  get syncMaps() {
-    return this.config?.syncMaps;
-  }
 
   addSyncMap() {
     this.config.syncMaps.unshift({
