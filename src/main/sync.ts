@@ -26,7 +26,7 @@ export async function syncFiles(
         channel: "log",
         content: `FTP Connection error: ${err}"`,
       });
-      return void 0;
+      return Promise.reject(void 0);
     })
     .exhaustive();
 

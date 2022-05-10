@@ -63,7 +63,7 @@ export class FTP {
             },
           });
         });
-        stream.once("finish", () => {
+        stream.once("close", () => {
           communication.dispatch({
             channel: "updateBottomBar",
             content: {
@@ -73,7 +73,7 @@ export class FTP {
           });
           resolve();
         });
-        stream.on("error", (err) => {
+        stream.once("error", (err) => {
           reject(err);
         });
       });
