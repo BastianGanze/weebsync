@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs, { Stats } from "fs";
 import { Config, SyncMap } from "./config";
 import { createFTPClient, FTP } from "./ftp";
 import Handlebars from "handlebars";
@@ -6,6 +6,7 @@ import ErrnoException = NodeJS.ErrnoException;
 import { ApplicationState } from "../shared/types";
 import { match, select } from "ts-pattern";
 import { communication } from "./communication";
+import { ListingElement } from "ftp";
 
 export async function syncFiles(
   applicationState: ApplicationState
@@ -76,6 +77,57 @@ export function toggleAutoSync(
   }
 }
 
+function getFileMatchesMap(
+  dir: ListingElement[],
+  syncMap: SyncMap,
+  config: Config
+): FileMatchesMap {
+  const fileMatchesMap: FileMatchesMap = {};
+
+  for (const listingElement of dir) {
+    const template = Handlebars.compile(syncMap.fileRenameTemplate);
+    const match = listingElement.name.match(syncMap.fileRegex);
+    if (!match) {
+      if (config.debugFileNames) {
+        communication.dispatch({
+          channel: "log",
+          content: `File did not match regex "${listingElement.name}". Not loading.`,
+        });
+      }
+      continue;
+    }
+
+    const templateData: { [key: string]: string } = {
+      $syncName: syncMap.id,
+    };
+    for (let i = 0; i < match.length; i++) {
+      templateData["$" + i] = match[i];
+    }
+
+    const newName = template(templateData);
+    const remoteFile = `${syncMap.originFolder}/${listingElement.name}`;
+    const localFile = `${syncMap.destinationFolder}/${newName}`;
+
+    if (!fileMatchesMap[localFile]) {
+      fileMatchesMap[localFile] = {
+        fileStatOnDisk: null,
+        remoteFilesMatching: [],
+      };
+    }
+
+    fileMatchesMap[localFile].remoteFilesMatching.push({
+      path: remoteFile,
+      listingElement,
+    });
+
+    if (fs.existsSync(localFile)) {
+      fileMatchesMap[localFile].fileStatOnDisk = fs.statSync(localFile);
+    }
+  }
+
+  return fileMatchesMap;
+}
+
 async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
   if (!createLocalFolder(syncMap.destinationFolder).exists) {
     return;
@@ -83,49 +135,35 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
 
   try {
     const dir = await ftpClient.listDir(syncMap.originFolder);
-    for (const item of dir) {
-      const template = Handlebars.compile(syncMap.fileRenameTemplate);
-      const match = item.name.match(syncMap.fileRegex);
-      const templateData: { [key: string]: string } = {};
-      if (match) {
-        for (let i = 0; i < match.length; i++) {
-          templateData["$" + i] = match[i];
-        }
-      } else {
-        if (config.debugFileNames) {
-          communication.dispatch({
-            channel: "log",
-            content: `File did not match regex "${item.name}". Not loading.`,
-          });
-        }
-        continue;
+    const fileMatchesMap = getFileMatchesMap(dir, syncMap, config);
+
+    for (const [localFile, fileMatches] of Object.entries(fileMatchesMap)) {
+      const latestRemoteMatch = getLatestMatchingFile(fileMatches);
+
+      if (config.debugFileNames) {
+        communication.log(`Renaming ${latestRemoteMatch.path} -> ${localFile}`);
       }
 
-      const newName = template(templateData);
-      const remoteFile = `${syncMap.originFolder}/${item.name}`;
-      const localFile = `${syncMap.destinationFolder}/${newName}`;
-      if (config.debugFileNames) {
-        communication.dispatch({
-          channel: "log",
-          content: `Renaming ${item.name} -> ${newName}`,
-        });
-      }
-      if (!fs.existsSync(localFile)) {
-        communication.dispatch({
-          channel: "log",
-          content: `New episode detected, loading ${newName} now.`,
-        });
-        await ftpClient.getFile(remoteFile, localFile, item.size);
-      } else {
-        const stat = fs.statSync(localFile);
-        if (stat.size != item.size) {
-          communication.dispatch({
-            channel: "log",
-            content: `Episode ${newName} was updated or didn't load correctly. Loading again.`,
-          });
-          await ftpClient.getFile(remoteFile, localFile, item.size);
+      if (fileMatches.fileStatOnDisk) {
+        if (
+          fileMatches.fileStatOnDisk.size ==
+          latestRemoteMatch.listingElement.size
+        ) {
+          continue;
+        } else {
+          communication.log(
+            `New version or damaged file detected, reloading ${localFile}`
+          );
         }
+      } else {
+        communication.log(`New episode detected, loading ${localFile} now.`);
       }
+
+      await ftpClient.getFile(
+        latestRemoteMatch.path,
+        localFile,
+        latestRemoteMatch.listingElement.size
+      );
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -147,6 +185,30 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
       communication.dispatch({ channel: "log", content: `Unknown error ${e}` });
     }
   }
+}
+
+interface RemoteFileMatching {
+  path: string;
+  listingElement: ListingElement;
+}
+
+interface FileMatchesMapEntry {
+  fileStatOnDisk: Stats | null;
+  remoteFilesMatching: RemoteFileMatching[];
+}
+
+interface FileMatchesMap {
+  [localFile: string]: FileMatchesMapEntry;
+}
+
+function getLatestMatchingFile(
+  fileMatches: FileMatchesMapEntry
+): RemoteFileMatching {
+  fileMatches.remoteFilesMatching.sort((a, b) =>
+    a.listingElement.date > b.listingElement.date ? -1 : 1
+  );
+
+  return fileMatches.remoteFilesMatching[0];
 }
 
 function createLocalFolder(destinationFolder: string): { exists: boolean } {

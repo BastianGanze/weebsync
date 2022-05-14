@@ -35,6 +35,13 @@ export class Communication {
     });
   }
 
+  log(content: string): void {
+    this.dispatch({
+      channel: "log",
+      content,
+    });
+  }
+
   dispatch(message: CommunicationChannelMessage): void {
     if (this.bufferMessagesForFirstLoad) {
       this.messages.push(message);
