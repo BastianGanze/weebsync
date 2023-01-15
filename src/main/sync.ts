@@ -6,7 +6,7 @@ import ErrnoException = NodeJS.ErrnoException;
 import { ApplicationState } from "../shared/types";
 import { match, select } from "ts-pattern";
 import { communication } from "./communication";
-import { ListingElement } from "ftp";
+import { FileInfo } from "basic-ftp";
 
 export async function syncFiles(
   applicationState: ApplicationState
@@ -78,7 +78,7 @@ export function toggleAutoSync(
 }
 
 function getFileMatchesMap(
-  dir: ListingElement[],
+  dir: FileInfo[],
   syncMap: SyncMap,
   config: Config
 ): FileMatchesMap {
@@ -189,7 +189,7 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
 
 interface RemoteFileMatching {
   path: string;
-  listingElement: ListingElement;
+  listingElement: FileInfo;
 }
 
 interface FileMatchesMapEntry {
