@@ -1,4 +1,4 @@
-import { BrowserWindow } from "electron";
+import { BrowserWindow, shell } from "electron";
 import path from "path";
 import { communication } from "./communication";
 
@@ -20,6 +20,13 @@ function getWindow() {
     mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
 
     mainWindow.webContents.openDevTools();
+
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+      setImmediate(() => {
+        shell.openExternal(url);
+      });
+      return { action: "deny" };
+    });
 
     mainWindow.webContents.on("did-finish-load", () => {
       for (const event of communication.drainMessageBuffer()) {

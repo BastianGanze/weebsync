@@ -57,6 +57,7 @@
         <v-tab class="app-tabs__tab-item" href="#tab-1">Console</v-tab>
         <v-tab class="app-tabs__tab-item" href="#tab-2">Config</v-tab>
         <v-tab class="app-tabs__tab-item" href="#tab-3">Sync</v-tab>
+        <v-tab class="app-tabs__tab-item" href="#tab-4">Info</v-tab>
       </v-tabs>
       <v-tabs-items class="app-tabs-content" v-model="tab">
         <v-tab-item class="app-tabs-content__tab-content" :value="'tab-1'"
@@ -283,6 +284,21 @@
             @click="sendConfig()"
             >Save</v-btn
           >
+        </v-tab-item>
+        <v-tab-item class="app-tabs-content__tab-content" :value="'tab-4'">
+          <v-list class="display-4" dense>
+            <v-list-item>Version 0.5</v-list-item>
+            <v-list-item
+              ><span
+                >For updates and general information look
+                <a
+                  href="https://github.com/BastianGanze/weebsync/releases"
+                  target="_blank"
+                  >here</a
+                >.</span
+              ></v-list-item
+            >
+          </v-list>
         </v-tab-item>
       </v-tabs-items>
     </div>
