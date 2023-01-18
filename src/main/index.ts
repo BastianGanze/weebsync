@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 
 import { Systray } from "./systray";
 import { saveConfig, waitForCorrectConfig, watchConfigChanges } from "./config";
@@ -16,6 +16,10 @@ import { match, P } from "ts-pattern";
 import { createFTPClient } from "./ftp";
 
 let applicationState: ApplicationState;
+
+ipcMain.handle("getAppVersion", () => {
+  return app.getVersion();
+});
 
 async function init() {
   applicationState = await setupApplication();

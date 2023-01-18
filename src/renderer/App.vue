@@ -57,7 +57,9 @@
         <v-tab class="app-tabs__tab-item" href="#tab-1">Console</v-tab>
         <v-tab class="app-tabs__tab-item" href="#tab-2">Config</v-tab>
         <v-tab class="app-tabs__tab-item" href="#tab-3">Sync</v-tab>
-        <v-tab class="app-tabs__tab-item" href="#tab-4">Info</v-tab>
+        <v-tab class="app-tabs__tab-item" href="#tab-4"
+          ><update-checker></update-checker> Info</v-tab
+        >
       </v-tabs>
       <v-tabs-items class="app-tabs-content" v-model="tab">
         <v-tab-item class="app-tabs-content__tab-content" :value="'tab-1'"
@@ -307,7 +309,7 @@
         </v-tab-item>
         <v-tab-item class="app-tabs-content__tab-content" :value="'tab-4'">
           <v-list class="caption" dense>
-            <v-list-item>Version 0.5.0</v-list-item>
+            <v-list-item>Version {{ version }}</v-list-item>
             <v-list-item
               ><span
                 >For updates and general information look
@@ -318,6 +320,9 @@
                 >.</span
               ></v-list-item
             >
+            <v-list-item
+              ><update-checker :show-link="true"></update-checker
+            ></v-list-item>
           </v-list>
         </v-tab-item>
       </v-tabs-items>
@@ -336,9 +341,10 @@ import { AppCommand } from "../shared/types";
 import { Config, SyncMap } from "../main/config";
 import FtpViewer from "./FtpViewer.vue";
 import { match, P } from "ts-pattern";
+import UpdateChecker from "./UpdateChecker.vue";
 
 @Component({
-  components: { FtpViewer },
+  components: { UpdateChecker, FtpViewer },
 })
 export default class App extends Vue {
   logMessages: string[];
@@ -347,6 +353,7 @@ export default class App extends Vue {
   config?: Config;
   tab: null;
   isSyncing: boolean = false;
+  version: string = "LOADING";
   syncIntervalRules: Array<(value: number) => string | boolean>;
 
   onChange() {
@@ -405,6 +412,7 @@ export default class App extends Vue {
   }
 
   created() {
+    window.api.getVersion().then((version) => (this.version = version));
     window.api.receive("log", (data: string) => {
       this.logMessages.unshift(data);
     });

@@ -20,6 +20,8 @@ export type IpcListener = (
 declare global {
   interface Window {
     api: {
+      getVersion(): Promise<string>;
+      getLatestVersion(): string;
       send<
         K extends CommunicationChannelMessage["channel"],
         T = ItemExtractor<K>["content"]
