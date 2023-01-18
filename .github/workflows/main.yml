@@ -29,8 +29,9 @@ jobs:
       - name: Login to Snapcraft
         if: startsWith(matrix.os, 'ubuntu')
         env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
-        run: snapcraft login
+          SNAPCRAFT_STORE_CREDENTIALS: '{"token": "${{ secrets.SNAPCRAFT_TOKEN }}"}'
+        run: |
+          echo $SNAPCRAFT_STORE_CREDENTIALS
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
