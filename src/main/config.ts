@@ -149,6 +149,9 @@ export function loadConfig(): Config | undefined {
 
 export function saveConfig(config: Config): void {
   try {
+    for (const sync of config.syncMaps) {
+      sync.destinationFolder = sync.destinationFolder.replaceAll("\\", "/");
+    }
     fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 4));
   } catch (e) {
     if (e instanceof Error) {
