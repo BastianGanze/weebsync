@@ -28,10 +28,9 @@ export class FTP {
 
   async getFile(
     hostFilePath: string,
-    localFilePath: string,
+    localFileStream: fs.WriteStream,
     size: number
   ): Promise<void> {
-    const localFileStream = fs.createWriteStream(localFilePath);
     const interval = 200;
     let bytesWrittenInLastInterval = 0;
     let lastInterval = Date.now();
@@ -54,14 +53,25 @@ export class FTP {
       }
     });
 
-    await this._client.downloadTo(localFileStream, hostFilePath);
-    communication.dispatch({
-      channel: "updateBottomBar",
-      content: {
-        fileProgress: "",
-        downloadSpeed: "",
-      },
-    });
+    try {
+      await this._client.downloadTo(localFileStream, hostFilePath);
+      communication.dispatch({
+        channel: "updateBottomBar",
+        content: {
+          fileProgress: "",
+          downloadSpeed: "",
+        },
+      });
+    } catch (e) {
+      communication.dispatch({
+        channel: "updateBottomBar",
+        content: {
+          fileProgress: "",
+          downloadSpeed: "",
+        },
+      });
+      throw e;
+    }
   }
 }
 

@@ -4,7 +4,7 @@ import { Systray } from "./systray";
 import { saveConfig, waitForCorrectConfig, watchConfigChanges } from "./config";
 import { setupTemplateHelper } from "./template";
 import { ApplicationState } from "../shared/types";
-import { syncFiles, toggleAutoSync } from "./sync";
+import { abortSync, syncFiles, toggleAutoSync } from "./sync";
 import { communication } from "./communication";
 import {
   hideWindow,
@@ -134,7 +134,13 @@ function hookupCommunicationEvents(applicationState: ApplicationState) {
       .with({ type: "maximize" }, () => maximizeWindow())
       .with({ type: "minimize-to-tray" }, () => hideWindow())
       .with({ type: "minimize" }, () => minimizeWindow())
-      .with({ type: "stop-sync" }, () => console.error("IMPLEMENT STOP SYNC"))
+      .with({ type: "sync" }, () => {
+        if (applicationState.syncInProgress) {
+          abortSync();
+        } else {
+          syncFiles(applicationState);
+        }
+      })
       .with(
         { type: "list-dir", path: P.select() },
         async (path) => await listDir(path)
@@ -153,7 +159,6 @@ function hookupCommunicationEvents(applicationState: ApplicationState) {
       if (applicationState.autoSyncIntervalHandler) {
         toggleAutoSync(applicationState, true);
       }
-      syncFiles(applicationState);
     }
   });
 

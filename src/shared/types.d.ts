@@ -54,7 +54,7 @@ export type AppCommand =
   | { type: "list-dir"; path: string }
   | { type: "check-dir"; path: string }
   | { type: "exit" }
-  | { type: "stop-sync" };
+  | { type: "sync" };
 
 export type AppCommandResult =
   | {
@@ -65,6 +65,10 @@ export type AppCommandResult =
   | {
       type: "check-dir";
       exists: boolean;
+    }
+  | {
+      type: "sync-status";
+      isSyncing: boolean;
     };
 
 export interface BottomBarUpdateEvent {

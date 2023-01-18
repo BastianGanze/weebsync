@@ -28,3 +28,25 @@ $font-family: 'Lato';
   }
   font-family: $font-family, sans-serif !important;
 }
+
+.v-input--reverse .v-input__slot {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: flex-start;
+
+  >.v-label {
+    flex: 0 1 auto !important;
+  }
+  .v-application--is-ltr & {
+    .v-input--selection-controls__input {
+      margin-right: 0;
+      margin-left: 8px;
+    }
+  }
+  .v-application--is-rtl & {
+    .v-input--selection-controls__input {
+      margin-left: 0;
+      margin-right: 8px;
+    }
+  }
+}

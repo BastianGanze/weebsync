@@ -8,6 +8,8 @@ import { match, P } from "ts-pattern";
 import { communication } from "./communication";
 import { FileInfo } from "basic-ftp";
 
+let currentWriteStream: fs.WriteStream | null = null;
+
 export async function syncFiles(
   applicationState: ApplicationState
 ): Promise<void> {
@@ -19,7 +21,7 @@ export async function syncFiles(
     return;
   }
 
-  applicationState.syncInProgress = true;
+  updateSyncStatus(applicationState, true);
   const ftpClient = await match(await createFTPClient(applicationState.config))
     .with({ type: "Ok", data: P.select() }, (res) => Promise.resolve(res))
     .with({ type: "ConnectionError", message: P.select() }, async (err) => {
@@ -32,18 +34,32 @@ export async function syncFiles(
     .exhaustive();
 
   if (ftpClient === void 0) {
-    applicationState.syncInProgress = false;
+    updateSyncStatus(applicationState, false);
     communication.dispatch({ channel: "log", content: `Could not sync.` });
     return;
   }
 
   communication.dispatch({ channel: "log", content: `Attempting to sync.` });
   for (const syncMap of applicationState.config.syncMaps) {
-    await sync(syncMap, ftpClient, applicationState.config);
+    if (!(await sync(syncMap, ftpClient, applicationState.config))) {
+      break;
+    }
   }
+  updateSyncStatus(applicationState, false);
   communication.dispatch({ channel: "log", content: `Sync done!` });
-  applicationState.syncInProgress = false;
+
   ftpClient.close();
+}
+
+function updateSyncStatus(applicationState: ApplicationState, status: boolean) {
+  applicationState.syncInProgress = status;
+  communication.dispatch({
+    channel: "command-result",
+    content: {
+      type: "sync-status",
+      isSyncing: status,
+    },
+  });
 }
 
 export function toggleAutoSync(
@@ -85,9 +101,13 @@ function getFileMatchesMap(
   const fileMatchesMap: FileMatchesMap = {};
 
   for (const listingElement of dir) {
-    const template = Handlebars.compile(syncMap.fileRenameTemplate);
-    const match = listingElement.name.match(syncMap.fileRegex);
-    if (!match) {
+    const template = syncMap.rename
+      ? Handlebars.compile(syncMap.fileRenameTemplate)
+      : Handlebars.compile(listingElement.name);
+    const match = syncMap.rename
+      ? listingElement.name.match(syncMap.fileRegex)
+      : "no_rename".match("no_rename");
+    if (match === null) {
       if (config.debugFileNames) {
         communication.dispatch({
           channel: "log",
@@ -128,9 +148,17 @@ function getFileMatchesMap(
   return fileMatchesMap;
 }
 
-async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
+export function abortSync(): void {
+  currentWriteStream.destroy(new Error("Manual abortion."));
+}
+
+async function sync(
+  syncMap: SyncMap,
+  ftpClient: FTP,
+  config: Config
+): Promise<boolean> {
   if (!createLocalFolder(syncMap.destinationFolder).exists) {
-    return;
+    return false;
   }
 
   try {
@@ -141,7 +169,11 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
       const latestRemoteMatch = getLatestMatchingFile(fileMatches);
 
       if (config.debugFileNames) {
-        communication.log(`Renaming ${latestRemoteMatch.path} -> ${localFile}`);
+        if (syncMap.rename) {
+          communication.log(
+            `Renaming ${latestRemoteMatch.path} -> ${localFile}`
+          );
+        }
       }
 
       if (fileMatches.fileStatOnDisk) {
@@ -159,11 +191,13 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
         communication.log(`New episode detected, loading ${localFile} now.`);
       }
 
+      currentWriteStream = fs.createWriteStream(localFile);
       await ftpClient.getFile(
         latestRemoteMatch.path,
-        localFile,
+        currentWriteStream,
         latestRemoteMatch.listingElement.size
       );
+      return true;
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -175,6 +209,11 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
             content: `Directory "${syncMap.originFolder}" does not exist on remote.`,
           });
         }
+      } else if (e.message === "Manual abortion.") {
+        communication.dispatch({
+          channel: "log",
+          content: `Sync was manually stopped. File will be downloaded again.`,
+        });
       } else {
         communication.dispatch({
           channel: "log",
@@ -184,6 +223,7 @@ async function sync(syncMap: SyncMap, ftpClient: FTP, config: Config) {
     } else {
       communication.dispatch({ channel: "log", content: `Unknown error ${e}` });
     }
+    return false;
   }
 }
 

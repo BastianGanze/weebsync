@@ -248,6 +248,18 @@
                         </v-col>
                       </v-row>
                       <v-row justify="start">
+                        <v-col cols="12" sm="12">
+                          <v-switch
+                            class="v-input--reverse config__switch"
+                            dense
+                            hide-details
+                            v-model="syncItem.rename"
+                            @change="onChange()"
+                            label="Rename items on sync"
+                          ></v-switch>
+                        </v-col>
+                      </v-row>
+                      <v-row justify="start" v-if="syncItem.rename">
                         <v-col cols="12" sm="12"
                           ><v-text-field
                             v-model="syncItem.fileRegex"
@@ -259,7 +271,7 @@
                           ></v-text-field>
                         </v-col>
                       </v-row>
-                      <v-row justify="start">
+                      <v-row justify="start" v-if="syncItem.rename">
                         <v-col cols="12" sm="12"
                           ><v-text-field
                             v-model="syncItem.fileRenameTemplate"
@@ -284,9 +296,16 @@
             @click="sendConfig()"
             >Save</v-btn
           >
+          <v-btn
+            small
+            elevation="0"
+            class="config__sync-button"
+            @click="sync()"
+            >{{ isSyncing ? "Stop Sync" : "Sync" }}</v-btn
+          >
         </v-tab-item>
         <v-tab-item class="app-tabs-content__tab-content" :value="'tab-4'">
-          <v-list class="display-4" dense>
+          <v-list class="caption" dense>
             <v-list-item>Version 0.5</v-list-item>
             <v-list-item
               ><span
@@ -315,6 +334,7 @@ import Component from "vue-class-component";
 import { AppCommand } from "../shared/types";
 import { Config, SyncMap } from "../main/config";
 import FtpViewer from "./FtpViewer.vue";
+import { match, P } from "ts-pattern";
 
 @Component({
   components: { FtpViewer },
@@ -325,7 +345,12 @@ export default class App extends Vue {
   downloadSpeed: string;
   config?: Config;
   tab: null;
+  isSyncing: boolean = false;
   syncIntervalRules: Array<(value: number) => string | boolean>;
+
+  onChange() {
+    this.$forceUpdate();
+  }
 
   originChange(syncItem: SyncMap, update: string) {
     syncItem.originFolder = update;
@@ -339,6 +364,7 @@ export default class App extends Vue {
       fileRenameTemplate: "",
       fileRegex: "",
       originFolder: "",
+      rename: false,
     });
 
     this.$forceUpdate();
@@ -386,6 +412,14 @@ export default class App extends Vue {
       this.config = data;
     });
 
+    window.api.receive("command-result", (result) => {
+      match(result)
+        .with({ type: "sync-status", isSyncing: P.select() }, (isSyncing) => {
+          this.isSyncing = isSyncing;
+        })
+        .otherwise(() => {});
+    });
+
     window.api.receive("updateBottomBar", (data) => {
       this.fileProgress = data.fileProgress;
       this.downloadSpeed = data.downloadSpeed;
@@ -398,6 +432,10 @@ export default class App extends Vue {
 
   sendConfig() {
     window.api.send("config", this.config);
+  }
+
+  sync() {
+    window.api.send("command", { type: "sync" });
   }
 }
 </script>
@@ -436,6 +474,12 @@ export default class App extends Vue {
     position: absolute;
     bottom: 0;
     right: 0;
+  }
+  &__sync-button {
+    z-index: 200;
+    position: absolute;
+    bottom: 0;
+    right: 72px;
   }
   &__switch {
     margin: 0;
@@ -533,6 +577,12 @@ export default class App extends Vue {
   width: 100%;
   padding: 5px;
   height: 22px;
+
+  &__file-progress,
+  &__download-speed {
+    display: flex;
+    align-items: center;
+  }
 
   &__file-progress {
     padding-left: 8px;

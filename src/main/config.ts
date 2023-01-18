@@ -71,6 +71,7 @@ export interface SyncMap {
   destinationFolder: string;
   fileRegex: string;
   fileRenameTemplate: string;
+  rename: boolean;
 }
 
 export function createDefaultConfig(): Config {
@@ -119,7 +120,16 @@ export async function waitForCorrectConfig(): Promise<Config> {
 
 export function loadConfig(): Config | undefined {
   return match(getConfig())
-    .with({ type: "Ok", data: P.select() }, (res) => res)
+    .with({ type: "Ok", data: P.select() }, (res) => {
+      const config = { ...res };
+      for (const sync of config.syncMaps) {
+        if (sync.rename === undefined) {
+          sync.rename =
+            sync.fileRegex.length > 0 || sync.fileRenameTemplate.length > 0;
+        }
+      }
+      return config;
+    })
     .with({ type: "UnknownError" }, () => {
       communication.dispatch({
         channel: "log",
