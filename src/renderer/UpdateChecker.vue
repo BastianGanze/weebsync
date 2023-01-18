@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-icon
-      title="New Version available!"
+      :title="`New Version available! (${latestVersion})`"
       v-if="!showLink && this.version !== latestVersion"
       small
       color="yellow"
@@ -33,9 +33,13 @@ export default class App extends Vue {
   @Prop(Boolean) showLink: boolean = false;
 
   created() {
-    this.latestVersion = window.api.getLatestVersion();
     window.api.getVersion().then((version) => {
       this.version = `v${version}`;
+      this.$forceUpdate();
+    });
+
+    window.api.getLatestVersion().then((version) => {
+      this.latestVersion = version;
       this.$forceUpdate();
     });
   }

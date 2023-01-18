@@ -21,7 +21,7 @@ declare global {
   interface Window {
     api: {
       getVersion(): Promise<string>;
-      getLatestVersion(): string;
+      getLatestVersion(): Promise<string>;
       send<
         K extends CommunicationChannelMessage["channel"],
         T = ItemExtractor<K>["content"]

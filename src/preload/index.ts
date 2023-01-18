@@ -10,7 +10,17 @@ fetch("https://api.github.com/repos/BastianGanze/weebsync/releases/latest")
 
 contextBridge.exposeInMainWorld("api", {
   getLatestVersion: () => {
-    return latestVersion;
+    if (latestVersion === "LOADING") {
+      return new Promise((resolve) => {
+        const intervalId = setInterval(() => {
+          if (latestVersion !== "LOADING") {
+            clearInterval(intervalId);
+            resolve(latestVersion);
+          }
+        }, 50);
+      });
+    }
+    return Promise.resolve(latestVersion);
   },
   getVersion: (): Promise<string> => {
     return new Promise((resolve, reject) => {
