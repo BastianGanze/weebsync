@@ -14,6 +14,7 @@ const config = defineConfig({
   build: {
     outDir: "build/renderer",
     minify: true,
+    chunkSizeWarningLimit: 5000,
   },
 
   plugins: [

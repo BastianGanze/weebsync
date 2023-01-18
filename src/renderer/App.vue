@@ -306,7 +306,7 @@
         </v-tab-item>
         <v-tab-item class="app-tabs-content__tab-content" :value="'tab-4'">
           <v-list class="caption" dense>
-            <v-list-item>Version 0.5</v-list-item>
+            <v-list-item>Version 0.5.0</v-list-item>
             <v-list-item
               ><span
                 >For updates and general information look
