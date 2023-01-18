@@ -51,7 +51,7 @@
           <v-list-item
             :disabled="loading"
             @click="pathUp()"
-            v-if="!isRoot(currentPath)"
+            v-if="!isRoot(current.path)"
             >..</v-list-item
           >
           <v-list-item

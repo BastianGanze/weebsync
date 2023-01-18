@@ -292,6 +292,7 @@
           <v-btn
             small
             elevation="0"
+            :disabled="isSyncing"
             class="config__save-button"
             @click="sendConfig()"
             >Save</v-btn

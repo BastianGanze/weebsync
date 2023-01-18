@@ -101,7 +101,7 @@ function getFileMatchesMap(
   const fileMatchesMap: FileMatchesMap = {};
 
   for (const listingElement of dir) {
-    const template = syncMap.rename
+    const renameTemplate = syncMap.rename
       ? Handlebars.compile(syncMap.fileRenameTemplate)
       : Handlebars.compile(listingElement.name);
     const match = syncMap.rename
@@ -124,9 +124,11 @@ function getFileMatchesMap(
       templateData["$" + i] = match[i];
     }
 
-    const newName = template(templateData);
+    const newName = renameTemplate(templateData);
     const remoteFile = `${syncMap.originFolder}/${listingElement.name}`;
-    const localFile = `${syncMap.destinationFolder}/${newName}`;
+    const localFile = Handlebars.compile(
+      `${syncMap.destinationFolder}/${newName}`
+    )(templateData);
 
     if (!fileMatchesMap[localFile]) {
       fileMatchesMap[localFile] = {
@@ -157,7 +159,10 @@ async function sync(
   ftpClient: FTP,
   config: Config
 ): Promise<boolean> {
-  if (!createLocalFolder(syncMap.destinationFolder).exists) {
+  const localFolder = Handlebars.compile(syncMap.destinationFolder)({
+    $syncName: syncMap.id,
+  });
+  if (!createLocalFolder(localFolder).exists) {
     return false;
   }
 
