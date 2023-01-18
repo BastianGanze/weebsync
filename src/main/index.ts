@@ -12,7 +12,8 @@ import {
   minimizeWindow,
   showWindow,
 } from "./main-window";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
+import { createFTPClient } from "./ftp";
 
 let applicationState: ApplicationState;
 
@@ -64,13 +65,84 @@ async function setupApplication(): Promise<ApplicationState> {
   };
 }
 
+async function listDir(path: string) {
+  await match(await createFTPClient(applicationState.config))
+    .with({ type: "Ok", data: P.select() }, async (client) => {
+      try {
+        const result = await client.listDir(path);
+        client.close();
+        communication.dispatch({
+          channel: "command-result",
+          content: {
+            type: "list-dir",
+            path,
+            result,
+          },
+        });
+      } catch (err) {
+        communication.dispatch({
+          channel: "log",
+          content: `FTP Connection error: ${err}"`,
+        });
+      }
+    })
+    .with({ type: "ConnectionError", message: P.select() }, async (err) => {
+      communication.dispatch({
+        channel: "log",
+        content: `FTP Connection error: ${err}"`,
+      });
+    })
+    .exhaustive();
+}
+
+async function checkDir(path: string) {
+  await match(await createFTPClient(applicationState.config))
+    .with({ type: "Ok", data: P.select() }, async (client) => {
+      try {
+        await client.cd(path);
+        client.close();
+        communication.dispatch({
+          channel: "command-result",
+          content: {
+            type: "check-dir",
+            exists: true,
+          },
+        });
+      } catch (err) {
+        communication.dispatch({
+          channel: "command-result",
+          content: {
+            type: "check-dir",
+            exists: false,
+          },
+        });
+      }
+    })
+    .with({ type: "ConnectionError", message: P.select() }, async (err) => {
+      communication.dispatch({
+        channel: "log",
+        content: `FTP Connection error: ${err}"`,
+      });
+    })
+    .exhaustive();
+}
+
 function hookupCommunicationEvents(applicationState: ApplicationState) {
   communication.frontend.command.sub((command) => {
     match(command)
-      .with("exit", () => app.exit(0))
-      .with("maximize", () => maximizeWindow())
-      .with("minimize-to-tray", () => hideWindow())
-      .with("minimize", () => minimizeWindow())
+      .with({ type: "exit" }, () => app.exit(0))
+      .with({ type: "maximize" }, () => maximizeWindow())
+      .with({ type: "minimize-to-tray" }, () => hideWindow())
+      .with({ type: "minimize" }, () => minimizeWindow())
+      .with({ type: "stop-sync" }, () => console.error("IMPLEMENT STOP SYNC"))
+      .with(
+        { type: "list-dir", path: P.select() },
+        async (path) => await listDir(path)
+      )
+      .with(
+        { type: "check-dir", path: P.select() },
+        async (path) => await checkDir(path)
+      )
       .exhaustive();
   });
   communication.frontend.config.sub((config) => {

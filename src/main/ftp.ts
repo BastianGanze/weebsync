@@ -2,7 +2,7 @@ import { Config } from "./config";
 import fs from "fs";
 
 import { communication } from "./communication";
-import { FileInfo, Client } from "basic-ftp";
+import { FileInfo, Client, FTPResponse } from "basic-ftp";
 
 export type CreateFtpClientResult =
   | {
@@ -16,6 +16,10 @@ export class FTP {
 
   async listDir(path: string): Promise<FileInfo[]> {
     return await this._client.list(path);
+  }
+
+  async cd(path: string): Promise<FTPResponse> {
+    return await this._client.cd(path);
   }
 
   close(): void {
@@ -65,7 +69,7 @@ export async function createFTPClient(
   config: Config
 ): Promise<CreateFtpClientResult> {
   const client = new Client();
-  client.ftp.verbose = true;
+  //client.ftp.verbose = true;
 
   try {
     await client.access({

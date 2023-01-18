@@ -216,15 +216,22 @@
                         </v-col>
                       </v-row>
                       <v-row justify="start">
-                        <v-col cols="12" sm="12"
-                          ><v-text-field
-                            v-model="syncItem.originFolder"
-                            dense
-                            hide-details="auto"
-                            type="text"
-                            label="Origin folder"
-                            class="config__text-field"
-                          ></v-text-field>
+                        <v-col cols="12" sm="12">
+                          <div class="config__actionable-field">
+                            <v-text-field
+                              :value="syncItem.originFolder"
+                              @input="originChange(syncItem, $event)"
+                              dense
+                              hide-details="auto"
+                              type="text"
+                              label="Origin folder"
+                              class="config__text-field"
+                            ></v-text-field>
+                            <ftp-viewer
+                              :current-path="syncItem.originFolder"
+                              @save="originChange(syncItem, $event)"
+                            ></ftp-viewer>
+                          </div>
                         </v-col>
                       </v-row>
                       <v-row justify="start">
@@ -290,9 +297,12 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { AppCommand } from "../shared/types";
-import { Config } from "../main/config";
+import { Config, SyncMap } from "../main/config";
+import FtpViewer from "./FtpViewer.vue";
 
-@Component({})
+@Component({
+  components: { FtpViewer },
+})
 export default class App extends Vue {
   logMessages: string[];
   fileProgress: string;
@@ -300,6 +310,11 @@ export default class App extends Vue {
   config?: Config;
   tab: null;
   syncIntervalRules: Array<(value: number) => string | boolean>;
+
+  originChange(syncItem: SyncMap, update: string) {
+    syncItem.originFolder = update;
+    this.$forceUpdate();
+  }
 
   addSyncMap() {
     this.config.syncMaps.unshift({
@@ -361,8 +376,8 @@ export default class App extends Vue {
     });
   }
 
-  sendCommand(command: AppCommand) {
-    window.api.send("command", command);
+  sendCommand(command: AppCommand["type"]) {
+    window.api.send("command", { type: command });
   }
 
   sendConfig() {
@@ -397,8 +412,11 @@ export default class App extends Vue {
 }
 
 .config {
+  &__actionable-field {
+    display: flex;
+  }
   &__save-button {
-    z-index: 300;
+    z-index: 200;
     position: absolute;
     bottom: 0;
     right: 0;

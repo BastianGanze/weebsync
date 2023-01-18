@@ -4,7 +4,7 @@ import { createFTPClient, FTP } from "./ftp";
 import Handlebars from "handlebars";
 import ErrnoException = NodeJS.ErrnoException;
 import { ApplicationState } from "../shared/types";
-import { match, select } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { communication } from "./communication";
 import { FileInfo } from "basic-ftp";
 
@@ -21,8 +21,8 @@ export async function syncFiles(
 
   applicationState.syncInProgress = true;
   const ftpClient = await match(await createFTPClient(applicationState.config))
-    .with({ type: "Ok", data: select() }, (res) => Promise.resolve(res))
-    .with({ type: "ConnectionError", message: select() }, async (err) => {
+    .with({ type: "Ok", data: P.select() }, (res) => Promise.resolve(res))
+    .with({ type: "ConnectionError", message: P.select() }, async (err) => {
       communication.dispatch({
         channel: "log",
         content: `FTP Connection error: ${err}"`,

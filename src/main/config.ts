@@ -1,5 +1,5 @@
 import fs from "fs";
-import { match, select } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import chokidar from "chokidar";
 import { ApplicationState } from "../shared/types";
 import { communication } from "./communication";
@@ -119,7 +119,7 @@ export async function waitForCorrectConfig(): Promise<Config> {
 
 export function loadConfig(): Config | undefined {
   return match(getConfig())
-    .with({ type: "Ok", data: select() }, (res) => res)
+    .with({ type: "Ok", data: P.select() }, (res) => res)
     .with({ type: "UnknownError" }, () => {
       communication.dispatch({
         channel: "log",
@@ -127,7 +127,7 @@ export function loadConfig(): Config | undefined {
       });
       return void 0;
     })
-    .with({ type: "WrongConfigError", message: select() }, (err) => {
+    .with({ type: "WrongConfigError", message: P.select() }, (err) => {
       communication.dispatch({
         channel: "log",
         content: `Config malformed. "${err}"`,
