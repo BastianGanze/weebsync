@@ -41,7 +41,8 @@ export async function syncFiles(
 
   communication.dispatch({ channel: "log", content: `Attempting to sync.` });
   for (const syncMap of applicationState.config.syncMaps) {
-    if (!(await sync(syncMap, ftpClient, applicationState.config))) {
+    const syncSuccess = await sync(syncMap, ftpClient, applicationState.config);
+    if (!syncSuccess) {
       break;
     }
   }
@@ -202,8 +203,8 @@ async function sync(
         currentWriteStream,
         latestRemoteMatch.listingElement.size
       );
-      return true;
     }
+    return true;
   } catch (e) {
     if (e instanceof Error) {
       if ("code" in e) {
