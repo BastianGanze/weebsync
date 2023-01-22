@@ -10,6 +10,11 @@ import { FileInfo } from "basic-ftp";
 
 let currentWriteStream: fs.WriteStream | null = null;
 
+export type SyncResult =
+  | { type: "Success" }
+  | { type: "Aborted" }
+  | { type: "Error"; error: Error };
+
 export async function syncFiles(
   applicationState: ApplicationState
 ): Promise<void> {
@@ -41,8 +46,13 @@ export async function syncFiles(
 
   communication.dispatch({ channel: "log", content: `Attempting to sync.` });
   for (const syncMap of applicationState.config.syncMaps) {
-    const syncSuccess = await sync(syncMap, ftpClient, applicationState.config);
-    if (!syncSuccess) {
+    const syncResult = await sync(syncMap, ftpClient, applicationState.config);
+    const abortSync = match(syncResult)
+      .with({ type: "Success" }, () => false)
+      .with({ type: "Aborted" }, () => true)
+      .with({ type: "Error" }, () => false)
+      .exhaustive();
+    if (abortSync) {
       break;
     }
   }
@@ -159,15 +169,19 @@ async function sync(
   syncMap: SyncMap,
   ftpClient: FTP,
   config: Config
-): Promise<boolean> {
+): Promise<SyncResult> {
   const localFolder = Handlebars.compile(syncMap.destinationFolder)({
     $syncName: syncMap.id,
   });
   if (!createLocalFolder(localFolder).exists) {
-    return false;
+    return {
+      type: "Error",
+      error: new Error(`Could not create local folder "${localFolder}"`),
+    };
   }
 
   try {
+    await ftpClient.cd(syncMap.originFolder);
     const dir = await ftpClient.listDir(syncMap.originFolder);
     const fileMatchesMap = getFileMatchesMap(dir, syncMap, config);
 
@@ -204,7 +218,7 @@ async function sync(
         latestRemoteMatch.listingElement.size
       );
     }
-    return true;
+    return { type: "Success" };
   } catch (e) {
     if (e instanceof Error) {
       if ("code" in e) {
@@ -215,21 +229,24 @@ async function sync(
             content: `Directory "${syncMap.originFolder}" does not exist on remote.`,
           });
         }
+        return { type: "Error", error: e };
       } else if (e.message === "Manual abortion.") {
         communication.dispatch({
           channel: "log",
           content: `Sync was manually stopped. File will be downloaded again.`,
         });
+        return { type: "Aborted" };
       } else {
         communication.dispatch({
           channel: "log",
           content: `Unknown error ${e.message}`,
         });
+        return { type: "Error", error: e };
       }
-    } else {
-      communication.dispatch({ channel: "log", content: `Unknown error ${e}` });
     }
-    return false;
+
+    communication.dispatch({ channel: "log", content: `Unknown error ${e}` });
+    return { type: "Error", error: e };
   }
 }
 
