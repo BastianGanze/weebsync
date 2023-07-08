@@ -1,22 +1,27 @@
-import { AppCommand, CommunicationChannelMessage } from "../shared/types";
+import { ServerCommand, CommunicationChannelMessage } from "../shared/types";
 import { SimpleEventDispatcher } from "strongly-typed-events";
-import { ipcMain } from "electron";
 import { Config } from "./config";
+import process from "process";
+import {Server} from "socket.io";
 
 export class Communication {
   bufferMessagesForFirstLoad: boolean;
   messages: CommunicationChannelMessage[];
+  io: Server;
 
   main: {
     dispatch: SimpleEventDispatcher<CommunicationChannelMessage>;
   };
 
   frontend: {
-    command: SimpleEventDispatcher<AppCommand>;
+    command: SimpleEventDispatcher<ServerCommand>;
     config: SimpleEventDispatcher<Config>;
   };
 
   constructor() {
+    this.io = new Server();
+    this.io.listen(process.env.WEEB_SYNC_SERVER_WS_PORT ? Number(process.env.WEEB_SYNC_SERVER_WS_PORT) : 42300);
+
     this.bufferMessagesForFirstLoad = true;
     this.messages = [];
     this.main = {
@@ -26,13 +31,6 @@ export class Communication {
       command: new SimpleEventDispatcher(),
       config: new SimpleEventDispatcher(),
     };
-
-    ipcMain.on("command", (_, command) => {
-      this.frontend.command.dispatch(command);
-    });
-    ipcMain.on("config", (_, config) => {
-      this.frontend.config.dispatch(config);
-    });
   }
 
   log(content: string): void {

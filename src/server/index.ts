@@ -1,25 +1,20 @@
-import { app, BrowserWindow, ipcMain } from "electron";
-
-import { Systray } from "./systray";
 import { saveConfig, waitForCorrectConfig, watchConfigChanges } from "./config";
 import { setupTemplateHelper } from "./template";
-import { ApplicationState } from "../shared/types";
+import {ApplicationState, Config} from "../shared/types";
 import { abortSync, syncFiles, toggleAutoSync } from "./sync";
-import { communication } from "./communication";
-import {
-  hideWindow,
-  maximizeWindow,
-  minimizeWindow,
-  showWindow,
-} from "./main-window";
+import { Communication } from "./communication";
 import { match, P } from "ts-pattern";
 import { createFTPClient } from "./ftp";
 
+const communication = new Communication();
 let applicationState: ApplicationState;
 
-ipcMain.handle("getAppVersion", () => {
-  return app.getVersion();
-});
+export interface ApplicationState {
+  config: Config;
+  configUpdateInProgress: boolean;
+  syncInProgress: boolean;
+  autoSyncIntervalHandler?: NodeJS.Timer;
+}
 
 async function init() {
   applicationState = await setupApplication();

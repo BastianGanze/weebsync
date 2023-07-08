@@ -1,87 +1,57 @@
-import { Systray } from "../main/systray";
-import { Config } from "../main/config";
 import { FileInfo } from "basic-ftp";
 
 export type CommunicationChannelMessage =
-  | { channel: "log"; content: string }
-  | { channel: "updateBottomBar"; content: BottomBarUpdateEvent }
-  | { channel: "command"; content: AppCommand }
-  | { channel: "command-result"; content: AppCommandResult }
-  | { channel: "config"; content: Config };
+  | { channel: "server"; content: ServerCommand }
+  | { channel: "dataUpdate"; content: DataEvent };
 
-type ItemExtractor<Match extends CommunicationChannelMessage["channel"]> =
-  Extract<CommunicationChannelMessage, { channel: Match }>;
+export type ServerCommand =
+  | { type: "listDir"; path: string }
+  | { type: "checkDir"; path: string }
+  | { type: "sync" }
+  | { type: "config"; content: Config };
 
-export type IpcListener = (
-  event: Electron.IpcRendererEvent,
-  ...args: never[]
-) => void;
-
-declare global {
-  interface Window {
-    api: {
-      getVersion(): Promise<string>;
-      getLatestVersion(): Promise<string>;
-      send<
-        K extends CommunicationChannelMessage["channel"],
-        T = ItemExtractor<K>["content"]
-      >(
-        channel: K,
-        content: T
-      ): void;
-      receive<
-        K extends CommunicationChannelMessage["channel"],
-        T = ItemExtractor<K>["content"]
-      >(
-        channel: K,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        func: (content: T) => void
-      ): IpcListener;
-      unsub<
-        K extends CommunicationChannelMessage["channel"],
-        T = ItemExtractor<K>["content"]
-      >(
-        channel: K,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        func: (content: T) => void
-      ): void;
+export interface Config {
+    syncOnStart?: boolean;
+    autoSyncIntervalInMinutes?: number;
+    debugFileNames?: boolean;
+    startAsTray?: boolean;
+    server: {
+        host: string;
+        port: number;
+        user: string;
+        password: string;
     };
-  }
+    syncMaps: SyncMap[];
 }
 
-export type AppCommand =
-  | { type: "minimize" }
-  | { type: "minimize-to-tray" }
-  | { type: "maximize" }
-  | { type: "list-dir"; path: string }
-  | { type: "check-dir"; path: string }
-  | { type: "exit" }
-  | { type: "sync" };
+export interface SyncMap {
+    id: string;
+    originFolder: string;
+    destinationFolder: string;
+    fileRegex: string;
+    fileRenameTemplate: string;
+    rename: boolean;
+}
 
-export type AppCommandResult =
+export type DataEvent =
   | {
-      type: "list-dir";
+      type: "listDir";
       path: string;
       result: FileInfo[];
     }
   | {
-      type: "check-dir";
+      type: "checkDir";
       exists: boolean;
     }
   | {
-      type: "sync-status";
+      type: "syncStatus";
       isSyncing: boolean;
-    };
+    }
+  | { type: "log"; content: string }
+  | { type: "updateBottomBar"; content: BottomBarUpdateEvent }
+  | { type: "config"; content: Config };
 
 export interface BottomBarUpdateEvent {
   fileProgress: string;
   downloadSpeed: string;
-}
-
-export interface ApplicationState {
-  systray?: Systray;
-  config: Config;
-  configUpdateInProgress: boolean;
-  syncInProgress: boolean;
-  autoSyncIntervalHandler?: NodeJS.Timer;
 }

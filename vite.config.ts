@@ -1,33 +1,30 @@
-import { defineConfig } from "vite";
-import { createVuePlugin } from "vite-plugin-vue2";
-import ViteComponents, { VuetifyResolver } from "vite-plugin-components";
-import { resolve } from "path";
+import { join } from 'path'
+import Vue from '@vitejs/plugin-vue'
+import type { UserConfig } from 'vite'
+import UnpluginVueComponents from 'unplugin-vue-components'
+import VitePluginVuetify from 'vite-plugin-vuetify';
 
-const config = defineConfig({
+const resolve = (dir: string) => join(__dirname, dir)
+
+const config: UserConfig = {
   resolve: {
     alias: {
-      "@": `${resolve(__dirname, "src")}`,
+      '@': resolve('src/client'),
     },
   },
-
   base: "",
   build: {
-    outDir: "build/renderer",
-    minify: true,
-    chunkSizeWarningLimit: 5000,
+    outDir: "build",
+    target: 'es2015',
   },
-
   plugins: [
-    createVuePlugin({}),
-    ViteComponents({
-      transformer: "vue2",
-      customComponentResolvers: [VuetifyResolver()],
-    }),
+    Vue(),
+    UnpluginVueComponents.vite(),
+    VitePluginVuetify()
   ],
-
   server: {
     port: 8080,
   },
-});
+}
 
-export default config;
+export default config

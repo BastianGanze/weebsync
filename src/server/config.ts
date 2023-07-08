@@ -1,7 +1,7 @@
 import fs from "fs";
 import { match, P } from "ts-pattern";
 import chokidar from "chokidar";
-import { ApplicationState } from "../shared/types";
+import {ApplicationState, Config} from "../shared/types";
 import { communication } from "./communication";
 
 const CONFIG_NAME = "weebsync.config.json";
@@ -49,29 +49,6 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
     }
     applicationState.configUpdateInProgress = false;
   });
-}
-
-export interface Config {
-  syncOnStart?: boolean;
-  autoSyncIntervalInMinutes?: number;
-  debugFileNames?: boolean;
-  startAsTray?: boolean;
-  server: {
-    host: string;
-    port: number;
-    user: string;
-    password: string;
-  };
-  syncMaps: SyncMap[];
-}
-
-export interface SyncMap {
-  id: string;
-  originFolder: string;
-  destinationFolder: string;
-  fileRegex: string;
-  fileRenameTemplate: string;
-  rename: boolean;
 }
 
 export function createDefaultConfig(): Config {
