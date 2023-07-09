@@ -4,11 +4,19 @@ export type CommunicationChannelMessage =
   | { channel: "server"; content: ServerCommand }
   | { channel: "dataUpdate"; content: DataEvent };
 
+export type Log = {
+    date: string;
+    content: string;
+    severity: 'info' | 'warn' | 'error' | 'debug'
+}
+
 export type ServerCommand =
   | { type: "listDir"; path: string }
   | { type: "checkDir"; path: string }
   | { type: "sync" }
-  | { type: "config"; content: Config };
+  | { type: "config"; content: Config }
+    | { type: "getLogs"; }
+    | { type: "getConfig"; };
 
 export interface Config {
     syncOnStart?: boolean;
@@ -47,7 +55,8 @@ export type DataEvent =
       type: "syncStatus";
       isSyncing: boolean;
     }
-  | { type: "log"; content: string }
+  | { type: "log"; content: Log }
+    | { type: "logs"; content: Log[] }
   | { type: "updateBottomBar"; content: BottomBarUpdateEvent }
   | { type: "config"; content: Config };
 

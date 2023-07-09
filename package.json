@@ -1,67 +1,25 @@
 {
   "name": "weebsync",
-  "version": "0.5.14",
+  "version": "0.6",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
-  "main": "./build/main.js",
+  "private": true,
   "scripts": {
-    "client:build": "vite build",
-    "client:dev": "vite dev",
-    "build": "yarn run build-renderer && yarn run build-main-preload",
+    "client:build": "cd client && yarn build",
+    "client:dev": "cd client && yarn dev",
+    "server:dev": "cd server && yarn dev",
     "lint": "eslint -c .eslintrc --ext .ts ./src"
   },
-  "build": {
-    "appId": "weeb.sync",
-    "productName": "weebsync",
-    "files": [
-      "build/**/*",
-      "static/**/*"
-    ],
-    "mac": {
-      "category": "files.sync",
-      "icon": "static/icon.icns"
-    },
-    "win": {
-      "target": "portable",
-      "icon": "static/icon.ico"
-    }
-  },
   "author": "Bastian Ganze",
+  "workspaces": {
+    "packages": [
+      "client",
+      "server"
+    ]
+  },
   "devDependencies": {
-    "@types/node": "^20.4.0",
-    "@types/progress-stream": "^2.0.2",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
-    "esbuild": "^0.18.11",
-    "eslint": "^8.44.0",
-    "eslint-plugin-vue": "^9.15.1",
-    "prettier": "^3.0.0",
-    "sass": "1.63.6",
-    "sass-loader": "^13.3.2",
-    "typescript": "5.1.6",
-    "vue": "^3.3.4",
-    "vue-class-component": "^7.2.6",
-    "vue-eslint-parser": "^9.3.1",
-    "vue-property-decorator": "^9.1.2"
-  },
-  "dependencies": {
-    "@fontsource/lato": "^5.0.4",
-    "@mdi/font": "^7.1.96",
-    "@mdi/js": "^7.1.96",
-    "@vitejs/plugin-vue": "^4.2.3",
-    "basic-ftp": "^5.0.2",
-    "chokidar": "^3.5.2",
-    "handlebars": "^4.7.7",
-    "pinia": "^2.1.4",
-    "socket.io": "^4.7.1",
-    "socket.io-client": "^4.7.1",
-    "strongly-typed-events": "^3.0.9",
-    "ts-pattern": "^5.0.1",
-    "unplugin-vue-components": "^0.25.1",
-    "vite": "^4.4.2",
-    "vite-plugin-compression": "^0.5.1",
-    "vite-plugin-vuetify": "^1.0.2",
-    "vue3-perfect-scrollbar": "^1.6.1",
-    "vuetify": "^3.3.7"
+    "eslint": "^8.44.0"
   }
 }

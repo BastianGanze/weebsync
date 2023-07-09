@@ -1,8 +1,8 @@
-import { Config } from "./config";
 import fs from "fs";
 
-import { communication } from "./communication";
+import { Communication } from "./communication";
 import { FileInfo, Client, FTPResponse } from "basic-ftp";
+import { Config } from "@shared/types";
 
 export type CreateFtpClientResult =
   | {
@@ -12,7 +12,10 @@ export type CreateFtpClientResult =
   | { type: "ConnectionError"; message: string };
 
 export class FTP {
-  constructor(private _client: Client) {}
+  constructor(
+    private _client: Client,
+    private _communication: Communication,
+  ) {}
 
   async listDir(path: string): Promise<FileInfo[]> {
     return await this._client.list(path);
@@ -29,7 +32,7 @@ export class FTP {
   async getFile(
     hostFilePath: string,
     localFileStream: fs.WriteStream,
-    size: number
+    size: number,
   ): Promise<void> {
     const interval = 200;
     let bytesWrittenInLastInterval = 0;
@@ -41,8 +44,8 @@ export class FTP {
         const speed =
           (localFileStream.bytesWritten - bytesWrittenInLastInterval) /
           interval;
-        communication.dispatch({
-          channel: "updateBottomBar",
+        this._communication.dispatch({
+          type: "updateBottomBar",
           content: {
             fileProgress: `${progress.toFixed(2).padStart(6, " ")}%`,
             downloadSpeed: `${(speed / 1000).toFixed(3).padStart(7, " ")} MB/s`,
@@ -55,16 +58,16 @@ export class FTP {
 
     try {
       await this._client.downloadTo(localFileStream, hostFilePath);
-      communication.dispatch({
-        channel: "updateBottomBar",
+      this._communication.dispatch({
+        type: "updateBottomBar",
         content: {
           fileProgress: "",
           downloadSpeed: "",
         },
       });
     } catch (e) {
-      communication.dispatch({
-        channel: "updateBottomBar",
+      this._communication.dispatch({
+        type: "updateBottomBar",
         content: {
           fileProgress: "",
           downloadSpeed: "",
@@ -76,7 +79,8 @@ export class FTP {
 }
 
 export async function createFTPClient(
-  config: Config
+  config: Config,
+  communication: Communication,
 ): Promise<CreateFtpClientResult> {
   const client = new Client();
   //client.ftp.verbose = true;
@@ -90,7 +94,7 @@ export async function createFTPClient(
       secure: true,
       secureOptions: { rejectUnauthorized: false },
     });
-    return { type: "Ok", data: new FTP(client) };
+    return { type: "Ok", data: new FTP(client, communication) };
   } catch (err) {
     client.close();
     return { type: "ConnectionError", message: err };

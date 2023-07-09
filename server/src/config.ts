@@ -1,8 +1,9 @@
 import fs from "fs";
 import { match, P } from "ts-pattern";
 import chokidar from "chokidar";
-import {ApplicationState, Config} from "../shared/types";
-import { communication } from "./communication";
+import { Config } from "@shared/types";
+import { ApplicationState } from "./index";
+import {Communication} from "./communication";
 
 const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.env.INIT_CWD
@@ -17,35 +18,27 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
       return;
     }
 
-    communication.dispatch({
-      channel: "log",
-      content: `"${oath}" changed, trying to update configuration.`,
-    });
+    applicationState.communication.logInfo(`"${oath}" changed, trying to update configuration.`);
     applicationState.configUpdateInProgress = true;
     if (applicationState.syncInProgress) {
-      communication.dispatch({
-        channel: "log",
-        content: "Sync is in progress, won't update configuration now.",
-      });
+      applicationState.communication.logInfo(
+        "Sync is in progress, won't update configuration now.",
+      );
       applicationState.configUpdateInProgress = false;
       return;
     }
-    const tmpConfig = loadConfig();
+    const tmpConfig = loadConfig(applicationState.communication);
     if (tmpConfig) {
       applicationState.config = tmpConfig;
-      communication.dispatch({
-        channel: "log",
-        content: "Config successfully updated.",
-      });
-      communication.dispatch({
-        channel: "config",
+      applicationState.communication.logInfo("Config successfully updated.");
+      applicationState.communication.dispatch({
+        type: "config",
         content: JSON.parse(JSON.stringify(tmpConfig)),
       });
     } else {
-      communication.dispatch({
-        channel: "log",
-        content: "Config was broken, will keep the old config for now.",
-      });
+      applicationState.communication.logError(
+        "Config was broken, will keep the old config for now.",
+      );
     }
     applicationState.configUpdateInProgress = false;
   });
@@ -75,17 +68,17 @@ export type GetConfigResult =
   | { type: "WrongConfigError"; message: string }
   | { type: "UnknownError" };
 
-export async function waitForCorrectConfig(): Promise<Config> {
-  communication.dispatch({ channel: "log", content: "Loading configuration." });
+export async function waitForCorrectConfig(communication: Communication): Promise<Config> {
+  communication.logInfo("Loading configuration.");
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
-    const tmpConfig = loadConfig();
+    const tmpConfig = loadConfig(communication);
     if (tmpConfig) {
       resolve(tmpConfig);
     } else {
       const watcher = chokidar.watch(CONFIG_FILE_PATH);
       watcher.on("change", async () => {
-        const tmpConfig = loadConfig();
+        const tmpConfig = loadConfig(communication);
         if (tmpConfig) {
           await watcher.close();
           resolve(tmpConfig);
@@ -95,7 +88,7 @@ export async function waitForCorrectConfig(): Promise<Config> {
   });
 }
 
-export function loadConfig(): Config | undefined {
+export function loadConfig(communication: Communication): Config | undefined {
   return match(getConfig())
     .with({ type: "Ok", data: P.select() }, (res) => {
       const config = { ...res };
@@ -108,23 +101,17 @@ export function loadConfig(): Config | undefined {
       return config;
     })
     .with({ type: "UnknownError" }, () => {
-      communication.dispatch({
-        channel: "log",
-        content: "Unknown error happened. :tehe:",
-      });
+      communication.logError("Unknown error happened. :tehe:");
       return void 0;
     })
     .with({ type: "WrongConfigError", message: P.select() }, (err) => {
-      communication.dispatch({
-        channel: "log",
-        content: `Config malformed. "${err}"`,
-      });
+      communication.logError(`Config malformed. "${err}"`);
       return void 0;
     })
     .exhaustive();
 }
 
-export function saveConfig(config: Config): void {
+export function saveConfig(config: Config, communication: Communication): void {
   try {
     for (const sync of config.syncMaps) {
       sync.destinationFolder = sync.destinationFolder.replaceAll("\\", "/");
@@ -132,10 +119,7 @@ export function saveConfig(config: Config): void {
     fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 4));
   } catch (e) {
     if (e instanceof Error) {
-      communication.dispatch({
-        channel: "log",
-        content: `Error while saving config!: ${e.message}`,
-      });
+      communication.logError(`Error while saving config!: ${e.message}`);
     }
   }
 }

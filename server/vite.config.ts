@@ -1,0 +1,34 @@
+import { join } from "path";
+import type { UserConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import { VitePluginNode } from "vite-plugin-node";
+const resolve = (dir: string) => join(__dirname, dir);
+
+const config: UserConfig = {
+  resolve: {
+    alias: {
+      "@": resolve("src"),
+    },
+  },
+  base: "",
+  build: {
+    lib: {
+      entry: resolve("src/index.ts"),
+      name: "server",
+      fileName: "server",
+    },
+  },
+  plugins: [
+    tsconfigPaths(),
+    ...VitePluginNode({
+      adapter: "fastify",
+      appPath: "src/index.ts",
+      exportName: "viteNodeServer"
+    }),
+  ],
+  server: {
+    port: 8081,
+  },
+};
+
+export default config;

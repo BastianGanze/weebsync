@@ -6,6 +6,7 @@ const opts: Partial<VuetifyOptions> = {
     defaultSet: "mdiSvg",
   },
   theme: {
+    defaultTheme: 'dark',
     themes: {
       dark: {
         dark: true,

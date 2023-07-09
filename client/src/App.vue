@@ -1,5 +1,5 @@
 <template>
-  <div class="main-app">
+  <v-app class="main-app">
     <div class="content-container">
       <v-tabs
         v-model="tab"
@@ -43,9 +43,9 @@
               <div
                 v-for="(log, index) in logs"
                 :key="index"
-                class="log-item"
+                :class="'log-item ' + 'log-item--' + log.severity"
               >
-                {{ log }}
+                [{{ formatDate(log.date) }}] {{ log.content }}
               </div>
             </perfect-scrollbar>
           </v-window-item>
@@ -54,6 +54,7 @@
             :value="'tab-2'"
           >
             <perfect-scrollbar class="config">
+              <div>{{ configLoaded }}</div>
               <template v-if="configLoaded">
                 <v-container :fluid="true">
                   <v-row
@@ -396,25 +397,45 @@
         {{ downloadSpeed }}
       </div>
     </div>
-  </div>
+  </v-app>
 </template>
 
 <script lang="ts" setup>
 import UpdateChecker from "./UpdateChecker.vue";
 import FtpViewer from "./FtpViewer.vue";
-import { communication } from "./communication";
-import {useUiStore} from "./store";
-import {SyncMap} from "../shared/types";
-import {ref} from "vue";
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
-const {logs, configLoaded, config} = useUiStore();
+import { useUiStore } from "./store";
+import { SyncMap } from "@shared/types";
+import {ref, watch} from "vue";
+import { useCommunication } from "./communication";
+import dayjs from "dayjs";
+import {storeToRefs} from "pinia";
+
+const { logs, configLoaded, config, isSyncing } = storeToRefs(useUiStore());
+const communication = useCommunication();
+
+watch([configLoaded], async (old, newth) => {
+  console.log(old, newth);
+});
+
+communication.send({type: 'getLogs'});
+communication.send({type: 'getConfig'});
 
 const fileProgress: string = "";
 const downloadSpeed: string = "";
 const tab = ref(null);
-const isSyncing: boolean = false;
 const version: string = "LOADING";
-const syncIntervalRules: Array<(value: number) => string | boolean> = [(v) => {console.log(v); return true}];
+const syncIntervalRules: Array<(value: number) => string | boolean> = [
+  (v) => {
+    console.log(v);
+    return true;
+  },
+];
+
+function formatDate(date: string): string {
+  return dayjs(new Date(date)).format('HH:mm:ss');
+}
 
 function addSyncMap() {
   this.config.syncMaps.unshift({
@@ -476,6 +497,24 @@ function originChange(syncItem: SyncMap, update: string) {
 .log,
 .config {
   height: 100%;
+}
+
+.log {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column-reverse;
+}
+
+.log-item {
+  &--warn {
+    color: rgb(var(--v-theme-warning));
+  }
+  &--debug {
+    color: rgb(var(--v-theme-info));
+  }
+  &--error {
+    color: rgb(var(--v-theme-error));
+  }
 }
 
 .sync {

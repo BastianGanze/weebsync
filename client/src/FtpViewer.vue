@@ -86,6 +86,8 @@
 </template>
 
 <script lang="ts" setup>
+import {PerfectScrollbar} from "vue3-perfect-scrollbar";
+import {mdiCloudCheckVariant, mdiCloudOff} from "@mdi/js";
 
 interface TreeChild {
   id: string;
@@ -121,8 +123,6 @@ const exists = false;
 const loading = false;
 const selectedItem = -1;
 //const timeout: NodeJS.Timeout;
-const mdiCloudCheckVariant = mdiCloudCheckVariant;
-const mdiCloudOff = mdiCloudOff;
 
 const current: TreeChild = {
   id: "root",

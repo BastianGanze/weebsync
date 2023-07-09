@@ -10,10 +10,12 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "types": [
-      "vite/client"
+      "vite/client",
+      "@types/node"
     ],
     "paths": {
-      "*": ["node_modules/*"]
+      "*": ["node_modules/*"],
+      "@shared/*": ["../shared/*"]
     }
   },
   "include": [
