@@ -25,6 +25,9 @@ $font-family: 'Lato';
   .v-label {
     font-size: 10.5pt !important;
   }
+  .v-window, .v-window-item {
+    height: 100%;
+  }
   input {
     color: #b9bbbe;
   }
@@ -51,4 +54,8 @@ $font-family: 'Lato';
       margin-right: 8px;
     }
   }
+}
+
+.ps--active-x > .ps__rail-x, .ps--active-y > .ps__rail-y {
+  z-index: 500;
 }

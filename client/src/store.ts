@@ -24,14 +24,15 @@ export const useUiStore = defineStore("uiStore", () => {
   const communication = useCommunication();
 
   const logs = reactive([] as Log[]);
-  let config = reactive(createDefaultConfig());
+  let config = ref(createDefaultConfig());
   const configLoaded = ref(false);
   const isSyncing = ref(false);
 
   communication.dataEvents.sub((event) => {
     match(event)
         .with({type: 'config', content: P.select()}, (configFromServer) => {
-          config = configFromServer;
+          console.log("config loaded");
+          config.value = configFromServer;
           configLoaded.value = true;
         })
         .with({type: 'log', content: P.select()}, (log) => {

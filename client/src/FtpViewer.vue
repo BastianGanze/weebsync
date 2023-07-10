@@ -6,30 +6,24 @@
     hide-overlay
     transition="dialog-bottom-transition"
   >
-    <template #activator="{ on, attrs }">
+    <template #activator="{ props }">
       <v-btn
-        icon
-        v-bind="attrs"
+        size="x-large"
+        variant="text"
+        v-bind="props"
         :color="getIconColor()"
-        v-on="on"
         @click="onOpenModal()"
       >
         <v-icon
           v-if="exists && !loading"
+          :icon="mdiCloudCheckVariant"
           title="Directory exists"
-        >
-          {{
-            mdiCloudCheckVariant
-          }}
-        </v-icon>
+        />
         <v-icon
           v-if="!exists && !loading"
+          :icon="mdiCloudOff"
           title="Directory does not exist"
-        >
-          {{
-            mdiCloudOff
-          }}
-        </v-icon><v-progress-circular
+        /><v-progress-circular
           v-if="loading"
           indeterminate
           width="2"
@@ -40,11 +34,10 @@
     <v-card>
       <v-toolbar>
         <v-btn
-          icon
+          variant="text"
+          :icon="mdiClose"
           @click="dialog = false"
-        >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
+        />
         <v-toolbar-title>{{ current.name }}</v-toolbar-title>
         <v-spacer />
         <v-toolbar-items>
@@ -87,7 +80,8 @@
 
 <script lang="ts" setup>
 import {PerfectScrollbar} from "vue3-perfect-scrollbar";
-import {mdiCloudCheckVariant, mdiCloudOff} from "@mdi/js";
+import {mdiClose, mdiCloudCheckVariant, mdiCloudOff} from "@mdi/js";
+import {ref} from "vue";
 
 interface TreeChild {
   id: string;
@@ -118,7 +112,7 @@ onCurrentPathChanged() {
   }, 250);
 }*/
 
-const dialog = false;
+const dialog = ref(false);
 const exists = false;
 const loading = false;
 const selectedItem = -1;

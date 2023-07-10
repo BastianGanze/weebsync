@@ -10,25 +10,25 @@
       >
         <v-tab
           class="app-tabs__tab-item"
-          href="#tab-1"
+          :value="'console'"
         >
           Console
         </v-tab>
         <v-tab
           class="app-tabs__tab-item"
-          href="#tab-2"
+          :value="'config'"
         >
           Config
         </v-tab>
         <v-tab
           class="app-tabs__tab-item"
-          href="#tab-3"
+          :value="'sync'"
         >
           Sync
         </v-tab>
         <v-tab
           class="app-tabs__tab-item"
-          href="#tab-4"
+          :value="'info'"
         >
           <update-checker /> Info
         </v-tab>
@@ -37,24 +37,25 @@
         <v-window v-model="tab">
           <v-window-item
             class="app-tabs-content__tab-content"
-            :value="'tab-1'"
+            :value="'console'"
           >
-            <perfect-scrollbar class="log">
-              <div
-                v-for="(log, index) in logs"
-                :key="index"
-                :class="'log-item ' + 'log-item--' + log.severity"
-              >
-                [{{ formatDate(log.date) }}] {{ log.content }}
+            <perfect-scrollbar class="log-wrap">
+              <div class="log">
+                <div
+                  v-for="(log, index) in logs"
+                  :key="index"
+                  :class="'log-item ' + 'log-item--' + log.severity"
+                >
+                  [{{ formatDate(log.date) }}] {{ log.content }}
+                </div>
               </div>
             </perfect-scrollbar>
           </v-window-item>
           <v-window-item
             class="app-tabs-content__tab-content"
-            :value="'tab-2'"
+            :value="'config'"
           >
             <perfect-scrollbar class="config">
-              <div>{{ configLoaded }}</div>
               <template v-if="configLoaded">
                 <v-container :fluid="true">
                   <v-row
@@ -191,162 +192,168 @@
           </v-window-item>
           <v-window-item
             class="app-tabs-content__tab-content"
-            :value="'tab-3'"
+            :value="'sync'"
           >
-            <perfect-scrollbar class="config">
+            <div class="config">
               <template v-if="configLoaded">
                 <div class="sync__add-button">
                   <v-btn
-                    x-large
-                    icon
+                    size="x-large"
+                    variant="text"
+                    :icon="mdiPlusCircleOutline"
                     color="green"
                     @click="addSyncMap()"
-                  >
-                    <v-icon>mdi-plus-circle-outline</v-icon>
-                  </v-btn>
+                  />
                 </div>
-                <v-expansion-panels
-                  :multiple="true"
-                  accordion
-                >
-                  <v-expansion-panel
-                    v-for="(syncItem, index) in config.syncMaps"
-                    :key="syncItem"
-                    class="sync__panel"
-                  >
-                    <v-expansion-panel-title>
-                      <span class="sync__item-header-text">{{
-                        syncItem.id ? syncItem.id : "Please add name"
-                      }}</span>
-                      <span class="sync__item-header-delete">
-                        <v-btn
-                          icon
-                          color="primary"
-                          @click="copySyncMap($event, index)"
+                <div class="sync__panel-wrap">
+                  <div class="sync__sync-panel-wrap-2">
+                    <perfect-scrollbar class="sync__sync-panel-wrap-3">
+                      <v-expansion-panels
+                        class="sync__panels"
+                        :multiple="true"
+                        accordion
+                      >
+                        <v-expansion-panel
+                          v-for="(syncItem, index) in config.syncMaps"
+                          :key="syncItem"
+                          class="sync__panel"
                         >
-                          <v-icon>mdi-content-copy</v-icon>
-                        </v-btn>
-                        <v-btn
-                          icon
-                          color="error"
-                          @click="deleteSyncMap($event, index)"
-                        >
-                          <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                      </span>
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text>
-                      <v-container :fluid="true">
-                        <v-row justify="start">
-                          <v-col
-                            cols="12"
-                            sm="12"
-                          >
-                            <v-text-field
-                              v-model="syncItem.id"
-                              dense
-                              hide-details="auto"
-                              type="text"
-                              label="Sync name"
-                              class="config__text-field"
-                              @change="onIdChange"
-                            />
-                          </v-col>
-                        </v-row>
-                        <v-row justify="start">
-                          <v-col
-                            cols="12"
-                            sm="12"
-                          >
-                            <div class="config__actionable-field">
-                              <v-text-field
-                                :value="syncItem.originFolder"
-                                dense
-                                hide-details="auto"
-                                type="text"
-                                label="Origin folder"
-                                class="config__text-field"
-                                @input="originChange(syncItem, $event)"
-                              />
-                              <ftp-viewer
-                                :current-path="syncItem.originFolder"
-                                @save="originChange(syncItem, $event)"
-                              />
+                          <v-expansion-panel-title class="sync__item-wrap">
+                            <div class="sync__item">
+                              <span class="sync__item-header-text">{{
+                                syncItem.id ? syncItem.id : "Please add name"
+                              }}</span>
+                              <span class="sync__item-header-delete">
+                                <v-btn
+                                  size="x-large"
+                                  variant="text"
+                                  :icon="mdiContentCopy"
+                                  color="primary"
+                                  @click="copySyncMap($event, index)"
+                                />
+                                <v-btn
+                                  size="x-large"
+                                  variant="text"
+                                  :icon="mdiDelete"
+                                  color="error"
+                                  @click="deleteSyncMap($event, index)"
+                                />
+                              </span>
                             </div>
-                          </v-col>
-                        </v-row>
-                        <v-row justify="start">
-                          <v-col
-                            cols="12"
-                            sm="12"
-                          >
-                            <v-text-field
-                              v-model="syncItem.destinationFolder"
-                              dense
-                              hide-details="auto"
-                              type="text"
-                              label="Destination folder"
-                              class="config__text-field"
-                            />
-                          </v-col>
-                        </v-row>
-                        <v-row justify="start">
-                          <v-col
-                            cols="12"
-                            sm="12"
-                          >
-                            <v-switch
-                              v-model="syncItem.rename"
-                              class="v-input--reverse config__switch"
-                              dense
-                              hide-details
-                              label="Rename items on sync"
-                              @change="onChange()"
-                            />
-                          </v-col>
-                        </v-row>
-                        <v-row
-                          v-if="syncItem.rename"
-                          justify="start"
-                        >
-                          <v-col
-                            cols="12"
-                            sm="12"
-                          >
-                            <v-text-field
-                              v-model="syncItem.fileRegex"
-                              dense
-                              hide-details="auto"
-                              type="text"
-                              label="File rename regex"
-                              class="config__text-field"
-                            />
-                          </v-col>
-                        </v-row>
-                        <v-row
-                          v-if="syncItem.rename"
-                          justify="start"
-                        >
-                          <v-col
-                            cols="12"
-                            sm="12"
-                          >
-                            <v-text-field
-                              v-model="syncItem.fileRenameTemplate"
-                              dense
-                              hide-details="auto"
-                              type="text"
-                              label="File rename template"
-                              class="config__text-field"
-                            />
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-expansion-panel-text>
-                  </v-expansion-panel>
-                </v-expansion-panels>
+                          </v-expansion-panel-title>
+                          <v-expansion-panel-text>
+                            <v-container :fluid="true">
+                              <v-row justify="start">
+                                <v-col
+                                  cols="12"
+                                  sm="12"
+                                >
+                                  <v-text-field
+                                    v-model="syncItem.id"
+                                    dense
+                                    hide-details="auto"
+                                    type="text"
+                                    label="Sync name"
+                                    class="config__text-field"
+                                  />
+                                </v-col>
+                              </v-row>
+                              <v-row justify="start">
+                                <v-col
+                                  cols="12"
+                                  sm="12"
+                                >
+                                  <div class="config__actionable-field">
+                                    <v-text-field
+                                      :value="syncItem.originFolder"
+                                      dense
+                                      hide-details="auto"
+                                      type="text"
+                                      label="Origin folder"
+                                      class="config__text-field"
+                                      @input="originChange(syncItem, $event)"
+                                    />
+                                    <ftp-viewer
+                                      :current-path="syncItem.originFolder"
+                                      @save="originChange(syncItem, $event)"
+                                    />
+                                  </div>
+                                </v-col>
+                              </v-row>
+                              <v-row justify="start">
+                                <v-col
+                                  cols="12"
+                                  sm="12"
+                                >
+                                  <v-text-field
+                                    v-model="syncItem.destinationFolder"
+                                    dense
+                                    hide-details="auto"
+                                    type="text"
+                                    label="Destination folder"
+                                    class="config__text-field"
+                                  />
+                                </v-col>
+                              </v-row>
+                              <v-row justify="start">
+                                <v-col
+                                  cols="12"
+                                  sm="12"
+                                >
+                                  <v-switch
+                                    v-model="syncItem.rename"
+                                    class="v-input--reverse config__switch"
+                                    dense
+                                    hide-details
+                                    label="Rename items on sync"
+                                  />
+                                </v-col>
+                              </v-row>
+                              <v-row
+                                v-if="syncItem.rename"
+                                justify="start"
+                              >
+                                <v-col
+                                  cols="12"
+                                  sm="12"
+                                >
+                                  <v-text-field
+                                    v-model="syncItem.fileRegex"
+                                    dense
+                                    hide-details="auto"
+                                    type="text"
+                                    label="File rename regex"
+                                    class="config__text-field"
+                                  />
+                                </v-col>
+                              </v-row>
+                              <v-row
+                                v-if="syncItem.rename"
+                                justify="start"
+                              >
+                                <v-col
+                                  cols="12"
+                                  sm="12"
+                                >
+                                  <v-text-field
+                                    v-model="syncItem.fileRenameTemplate"
+                                    dense
+                                    hide-details="auto"
+                                    type="text"
+                                    label="File rename template"
+                                    class="config__text-field"
+                                  />
+                                </v-col>
+                              </v-row>
+                            </v-container>
+                          </v-expansion-panel-text>
+                        </v-expansion-panel>
+                      </v-expansion-panels>
+                    </perfect-scrollbar>
+                  </div>
+                </div>
               </template>
-            </perfect-scrollbar>
+            </div>
             <v-btn
               small
               elevation="0"
@@ -367,7 +374,7 @@
           </v-window-item>
           <v-window-item
             class="app-tabs-content__tab-content"
-            :value="'tab-4'"
+            :value="'info'"
           >
             <v-list
               class="caption"
@@ -407,24 +414,21 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 import { useUiStore } from "./store";
 import { SyncMap } from "@shared/types";
-import {ref, watch} from "vue";
+import {ref} from "vue";
 import { useCommunication } from "./communication";
 import dayjs from "dayjs";
 import {storeToRefs} from "pinia";
+import {mdiContentCopy, mdiDelete, mdiPlusCircleOutline} from "@mdi/js";
 
 const { logs, configLoaded, config, isSyncing } = storeToRefs(useUiStore());
 const communication = useCommunication();
-
-watch([configLoaded], async (old, newth) => {
-  console.log(old, newth);
-});
 
 communication.send({type: 'getLogs'});
 communication.send({type: 'getConfig'});
 
 const fileProgress: string = "";
 const downloadSpeed: string = "";
-const tab = ref(null);
+const tab = ref('tab-1');
 const version: string = "LOADING";
 const syncIntervalRules: Array<(value: number) => string | boolean> = [
   (v) => {
@@ -446,15 +450,12 @@ function addSyncMap() {
     originFolder: "",
     rename: false,
   });
-
-  this.$forceUpdate();
 }
 
 function deleteSyncMap(event: MouseEvent, index: number) {
   event.preventDefault();
 
   this.config.syncMaps.splice(index, 1);
-  this.$forceUpdate();
 }
 
 function copySyncMap(event: MouseEvent, index: number) {
@@ -463,12 +464,8 @@ function copySyncMap(event: MouseEvent, index: number) {
   this.config.syncMaps.splice(index + 1, 0, {
     ...this.config.syncMaps[index],
   });
-  this.$forceUpdate();
 }
 
-function onIdChange() {
-  this.$forceUpdate();
-}
 
 function sendConfig() {
   communication.send({ type: "config", content: this.config });
@@ -478,13 +475,8 @@ function sync() {
   communication.send({ type: "sync" });
 }
 
-function onChange() {
-  this.$forceUpdate();
-}
-
 function originChange(syncItem: SyncMap, update: string) {
   syncItem.originFolder = update;
-  this.$forceUpdate();
 }
 </script>
 
@@ -494,8 +486,14 @@ function originChange(syncItem: SyncMap, update: string) {
   background: none;
 }
 
-.log,
 .config {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+.log-wrap {
   height: 100%;
 }
 
@@ -503,6 +501,7 @@ function originChange(syncItem: SyncMap, update: string) {
   display: flex;
   flex-wrap: wrap;
   flex-direction: column-reverse;
+  justify-content: flex-end;
 }
 
 .log-item {
@@ -518,8 +517,44 @@ function originChange(syncItem: SyncMap, update: string) {
 }
 
 .sync {
+  &__panel-wrap {
+    flex-grow: 1;
+    min-height: 0;
+    position: relative;
+  }
+  &__sync-panel-wrap-2 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  &__sync-panel-wrap-3 {
+    height: 100%;
+  }
+
+  &__panel {
+    width: 100%;
+    flex-grow: 0;
+  }
+
   &__panel {
     background-color: #272727;
+  }
+
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  &__item-wrap {
+    padding: 0 24px;
+  }
+
+  &__item-header-text {
+    display: flex;
+    align-items: center;
   }
 
   &__item-header-delete {
@@ -528,6 +563,7 @@ function originChange(syncItem: SyncMap, update: string) {
 
   &__add-button {
     margin-bottom: 5px;
+    width: 100%;
   }
 }
 
@@ -572,7 +608,7 @@ function originChange(syncItem: SyncMap, update: string) {
 }
 
 .app-tabs {
-  flex: 0 1 auto;
+  min-height: var(--v-tabs-height);
   &__tab-item {
     padding: 8px;
     min-width: auto;
@@ -587,16 +623,10 @@ function originChange(syncItem: SyncMap, update: string) {
 }
 
 .app-tabs-content {
-  &:deep(.v-window__container) {
-    height: 100%;
-  }
   background-color: #282a2d;
-  flex: 1 1 auto;
+  flex-grow: 1;
   padding: 8px 0 0 8px;
-
-  &__tab-content {
-    height: 100%;
-  }
+  min-height: 0;
 }
 
 .bottom-bar {
