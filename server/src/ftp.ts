@@ -12,10 +12,21 @@ export type CreateFtpClientResult =
   | { type: "ConnectionError"; message: string };
 
 export class FTP {
+  private _client = new Client();
   constructor(
-    private _client: Client,
     private _communication: Communication,
   ) {}
+
+  async connect(config: Config) {
+    await this._client.access({
+      host: config.server.host,
+      user: config.server.user,
+      port: config.server.port,
+      password: config.server.password,
+      secure: true,
+      secureOptions: { rejectUnauthorized: false },
+    });
+  }
 
   async listDir(path: string): Promise<FileInfo[]> {
     return await this._client.list(path);
@@ -27,6 +38,10 @@ export class FTP {
 
   close(): void {
     this._client.close();
+  }
+
+  isClosed(): boolean {
+    return this._client.closed;
   }
 
   async getFile(
@@ -78,25 +93,29 @@ export class FTP {
   }
 }
 
-export async function createFTPClient(
+let ftp: FTP;
+let timeout: NodeJS.Timeout;
+
+export async function getFTPClient(
   config: Config,
   communication: Communication,
 ): Promise<CreateFtpClientResult> {
-  const client = new Client();
-  //client.ftp.verbose = true;
-
   try {
-    await client.access({
-      host: config.server.host,
-      user: config.server.user,
-      port: config.server.port,
-      password: config.server.password,
-      secure: true,
-      secureOptions: { rejectUnauthorized: false },
-    });
-    return { type: "Ok", data: new FTP(client, communication) };
+    if (timeout) {
+      clearTimeout(
+          timeout
+      );
+      timeout = setTimeout(() => {ftp.close()}, 1000 * 60);
+    }
+    if (!ftp || ftp.isClosed()) {
+      ftp = new FTP(communication);
+      await ftp.connect(config);
+    }
+    return { type: "Ok", data: ftp };
   } catch (err) {
-    client.close();
+    if (ftp && !ftp.isClosed()) {
+      ftp.close();
+    }
     return { type: "ConnectionError", message: err };
   }
 }

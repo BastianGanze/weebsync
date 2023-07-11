@@ -3,7 +3,7 @@ import { setupTemplateHelper } from "./template";
 import { Config } from "@shared/types";
 import { abortSync, syncFiles, toggleAutoSync } from "./sync";
 import { match, P } from "ts-pattern";
-import { createFTPClient } from "./ftp";
+import { getFTPClient } from "./ftp";
 import Fastify from "fastify";
 import process from "process";
 import socketIoFastify from "fastify-socket.io";
@@ -81,18 +81,17 @@ async function setupApplication(communication: Communication): Promise<Applicati
 }
 
 async function listDir(path: string, applicationState: ApplicationState) {
-  await match(await createFTPClient(applicationState.config, applicationState.communication))
+  await match(await getFTPClient(applicationState.config, applicationState.communication))
     .with({ type: "Ok", data: P.select() }, async (client) => {
       try {
         const result = await client.listDir(path);
-        client.close();
         applicationState.communication.dispatch({
           type: "listDir",
           path,
           result,
         });
       } catch (err) {
-        applicationState.communication.logInfo(`FTP Connection error: ${err}"`);
+        applicationState.communication.logError(`FTP Connection error: ${err}"`);
       }
     })
     .with({ type: "ConnectionError", message: P.select() }, async (err) => {
@@ -102,11 +101,10 @@ async function listDir(path: string, applicationState: ApplicationState) {
 }
 
 async function checkDir(path: string, applicationState: ApplicationState) {
-  await match(await createFTPClient(applicationState.config, applicationState.communication))
+  await match(await getFTPClient(applicationState.config, applicationState.communication))
     .with({ type: "Ok", data: P.select() }, async (client) => {
       try {
         await client.cd(path);
-        client.close();
         applicationState.communication.dispatch({
           type: "checkDir",
           exists: true,

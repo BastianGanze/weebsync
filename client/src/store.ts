@@ -45,7 +45,7 @@ export const useUiStore = defineStore("uiStore", () => {
         .with({type: 'syncStatus', isSyncing: P.select()}, (isSyncingStatus) => {
           isSyncing.value = isSyncingStatus;
         })
-        .run();
+        .otherwise(() => {console.log("not here")});
   })
 
   return { config, configLoaded, logs, isSyncing };

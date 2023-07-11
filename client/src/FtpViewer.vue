@@ -65,12 +65,12 @@
             ..
           </v-list-item>
           <v-list-item
-            v-for="item in current.children"
-            :key="item.id"
-            :disabled="loading || !item.isDir"
-            @click="fetchDirectory(item.path)"
+            v-for="child in current.children"
+            :key="child.id"
+            :disabled="loading || !child.isDir"
+            @click="fetchDirectory(child.path)"
           >
-            {{ item.name }}
+            {{ child.name }}
           </v-list-item>
         </v-list>
       </perfect-scrollbar>
@@ -81,7 +81,9 @@
 <script lang="ts" setup>
 import {PerfectScrollbar} from "vue3-perfect-scrollbar";
 import {mdiClose, mdiCloudCheckVariant, mdiCloudOff} from "@mdi/js";
-import {ref} from "vue";
+import {ref, watch} from "vue";
+import {useCommunication} from "./communication";
+import {SyncMap} from "@shared/types";
 
 interface TreeChild {
   id: string;
@@ -91,56 +93,54 @@ interface TreeChild {
   children?: TreeChild[];
 }
 
+const emit = defineEmits(['save'])
 
 function save() {
-  /*if (this.loading) {
+  if (this.loading) {
     return;
   }
   this.dialog = false;
-  return this.current.path;*/
+  emit('save', current.value.path);
 }
 
-defineProps<{currentPath: string}>();
+let timeout: number;
+const ftpProps = defineProps<{item: SyncMap}>();
+const syncItem = ref(ftpProps.item);
 
-/*@Watch("currentPath")
-onCurrentPathChanged() {
-  if (this.timeout) {
-    clearTimeout(this.timeout);
+watch([ftpProps], () => {
+  if (timeout) {
+    clearTimeout(timeout);
   }
-  this.timeout = setTimeout(() => {
-    //this.checkDirectory();
+  timeout = setTimeout(() => {
+    checkDirectory(syncItem.value.originFolder);
   }, 250);
-}*/
+}, {immediate: true})
 
 const dialog = ref(false);
-const exists = false;
-const loading = false;
-const selectedItem = -1;
-//const timeout: NodeJS.Timeout;
+const exists = ref(false);
+const loading = ref(false);
+const selectedItem = ref(-1);
 
-const current: TreeChild = {
+
+const current = ref<TreeChild>({
   id: "root",
   name: ".",
   path: "",
   isDir: true,
   children: [],
-};
+});
 
 function getIconColor(): string {
-  if (this.loading) {
+  if (loading.value) {
     return "white";
   }
 
-  return this.exists ? "green" : "red";
+  return exists.value ? "green" : "red";
 }
-
-/*function getPath(): string {
-  return this.$props.currentPath;
-}*/
 
 function pathUp() {
   if (this.current.path.includes("/")) {
-    //this.fetchDirectory(this.current.path.split("/").slice(0, -1).join("/"));
+    fetchDirectory(this.current.path.split("/").slice(0, -1).join("/"));
   }
 }
 
@@ -149,100 +149,66 @@ function isRoot(path: string) {
 }
 
 function onOpenModal() {
-  //this.fetchDirectory(this.path);
+  fetchDirectory(syncItem.value.originFolder);
 }
 
+const communication = useCommunication();
 
-/*checkDirectory(): Promise<void> {
-  if (this.loading) {
+function checkDirectory(path: string): Promise<void> {
+  if (!path) {
+    console.error("No path?!");
+    return Promise.resolve();
+  }
+  if (loading.value) {
     return Promise.resolve();
   }
 
-  this.loading = true;
-  return new Promise((resolve, reject) => {
-    const listener = window.api.receive(
-      "command-result",
-      (result: DataEvent) => {
-        match(result)
-          .with(
-            {
-              type: "check-dir",
-              exists: P.select(),
-            },
-            (exists) => {
-              this.loading = false;
-              try {
-                window.api.unsub("command-result", listener);
-                this.exists = exists;
-                resolve();
-              } catch (err) {
-                window.api.unsub("command-result", listener);
-                reject(err);
-              }
-            }
-          )
-          .otherwise(() => {});
+  loading.value = true;
+  return new Promise((resolve) => {
+    communication.dataEvents.one((event) => {
+      loading.value = false;
+      if (event.type === 'checkDir') {
+        exists.value = event.exists;
       }
-    );
-    window.api.send("command", {
-      type: "check-dir",
-      path: this.path,
-    });
+      resolve();
+    })
+    communication.send({type: 'checkDir', path})
   });
-}*/
+}
 
 function fetchDirectory(itemPath: string) {
-  console.log(itemPath);
-  /*if (this.loading) {
+  if (loading.value) {
     return Promise.resolve();
   }
 
-  this.loading = true;
-  return new Promise((resolve, reject) => {
-    let listener = window.api.receive(
-      "command-result",
-      (result: DataEvent) => {
-        match(result)
-          .with(
-            {
-              type: "list-dir",
-              result: P.select("result"),
-              path: P.select("path"),
-            },
-            ({ result, path }) => {
-              try {
-                if (itemPath === path) {
-                  window.api.unsub("command-result", listener);
-                  this.selectedItem = -1;
-                  this.current = {
-                    path: itemPath,
-                    name: itemPath,
-                    isDir: true,
-                    children: [],
-                    id: itemPath,
-                  };
-                  this.current.children = result.map((r) => ({
-                    id: `${this.current.path}/${r.name}`,
-                    path: `${this.current.path}/${r.name}`,
-                    isDir: r.type === 2,
-                    name: r.name,
-                    children: r.type === 2 ? [] : undefined,
-                  }));
-                  this.loading = false;
-                  resolve();
-                }
-              } catch (err) {
-                window.api.unsub("command-result", listener);
-                reject(err);
-                this.loading = false;
-              }
-            }
-          )
-          .otherwise(() => {});
+  loading.value = true;
+  return new Promise((resolve) => {
+    const path = itemPath;
+    communication.dataEvents.one((result) => {
+      loading.value = false;
+      if (result.type === 'listDir') {
+        console.log(result);
+            selectedItem.value = -1;
+            current.value = {
+              path: path,
+              name: path,
+              isDir: true,
+              children: [],
+              id: path,
+            };
+            current.value.children = result.result.map((r) => ({
+              id: `${current.value.path}/${r.name}`,
+              path: `${current.value.path}/${r.name}`,
+              isDir: r.type === 2,
+              name: r.name,
+              children: r.type === 2 ? [] : undefined,
+            }));
+      }
+      resolve();
       }
     );
-    window.api.send("command", { type: "list-dir", path: itemPath });
-  });*/
+    communication.send({type: 'listDir', path});
+  });
 }
 
 </script>

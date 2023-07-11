@@ -265,17 +265,17 @@
                                 >
                                   <div class="config__actionable-field">
                                     <v-text-field
-                                      :value="syncItem.originFolder"
+                                      :model-value="syncItem.originFolder"
                                       dense
                                       hide-details="auto"
                                       type="text"
                                       label="Origin folder"
                                       class="config__text-field"
-                                      @input="originChange(syncItem, $event)"
+                                      @update:model-value="pathPicked(syncItem, $event)"
                                     />
                                     <ftp-viewer
-                                      :current-path="syncItem.originFolder"
-                                      @save="originChange(syncItem, $event)"
+                                      :item="syncItem"
+                                      @save="pathPicked(syncItem, $event)"
                                     />
                                   </div>
                                 </v-col>
@@ -414,7 +414,7 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 import { useUiStore } from "./store";
 import { SyncMap } from "@shared/types";
-import {ref} from "vue";
+import { ref} from "vue";
 import { useCommunication } from "./communication";
 import dayjs from "dayjs";
 import {storeToRefs} from "pinia";
@@ -475,9 +475,10 @@ function sync() {
   communication.send({ type: "sync" });
 }
 
-function originChange(syncItem: SyncMap, update: string) {
+function pathPicked(syncItem: SyncMap, update: string) {
   syncItem.originFolder = update;
 }
+
 </script>
 
 <style scoped lang="scss">
@@ -596,7 +597,7 @@ function originChange(syncItem: SyncMap, update: string) {
   flex-flow: column;
   height: auto;
   position: absolute;
-  top: 27px;
+  top: 0;
   left: 5px;
   bottom: 27px;
   right: 5px;

@@ -1,5 +1,5 @@
 import fs, { Stats } from "fs";
-import { createFTPClient, FTP } from "./ftp";
+import { getFTPClient, FTP } from "./ftp";
 import Handlebars from "handlebars";
 import ErrnoException = NodeJS.ErrnoException;
 import { match, P } from "ts-pattern";
@@ -27,7 +27,7 @@ export async function syncFiles(
 
   updateSyncStatus(applicationState, true);
   const ftpClient = match(
-    await createFTPClient(applicationState.config, applicationState.communication),
+    await getFTPClient(applicationState.config, applicationState.communication),
   )
     .with({ type: "Ok", data: P.select() }, (res) => res)
     .with({ type: "ConnectionError", message: P.select() }, (err) => {
