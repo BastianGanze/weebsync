@@ -4,7 +4,7 @@
 
 ```
 docker build -t weebsync .
-docker run -d --name weebsync -p 42380:42380 -v /home/user/wsconfig/:/build/config weebsync
+docker run -d --name weebsync -p 42380:42380 -v /home/user/wsconfig/:/config weebsync
 ```
 
 # Example Config
@@ -18,7 +18,6 @@ docker run -d --name weebsync -p 42380:42380 -v /home/user/wsconfig/:/build/conf
   "syncOnStart": true,
   "autoSyncIntervalInMinutes": 30,
   "debugFileNames": false,
-  "startAsTray": false,
     "server": {
         "host": "",
         "port": 21,

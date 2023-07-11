@@ -384,10 +384,10 @@
     </div>
     <div class="bottom-bar">
       <div class="bottom-bar__file-progress">
-        {{ fileProgress }}
+        {{ bottomBar.fileProgress }}
       </div>
       <div class="bottom-bar__download-speed">
-        {{ downloadSpeed }}
+        {{ bottomBar.downloadSpeed }}
       </div>
     </div>
   </v-app>
@@ -406,14 +406,12 @@ import dayjs from "dayjs";
 import {storeToRefs} from "pinia";
 import {mdiContentCopy, mdiDelete, mdiPlusCircleOutline} from "@mdi/js";
 
-const { logs, configLoaded, config, isSyncing, currentVersion } = storeToRefs(useUiStore());
+const { logs, configLoaded, config, isSyncing, currentVersion, bottomBar } = storeToRefs(useUiStore());
 const communication = useCommunication();
 
 communication.send({type: 'getLogs'});
 communication.send({type: 'getConfig'});
 
-const fileProgress: string = "";
-const downloadSpeed: string = "";
 const tab = ref('tab-1');
 
 const syncIntervalRules: Array<(value: number) => string | boolean> = [

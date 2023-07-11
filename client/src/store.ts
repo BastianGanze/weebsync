@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import {Config, Log} from "@shared/types";
+import {BottomBarUpdateEvent, Config, Log} from "@shared/types";
 import {reactive, ref} from "vue";
 import { useCommunication} from "./communication";
 import {match, P} from "ts-pattern";
@@ -29,6 +29,7 @@ export const useUiStore = defineStore("uiStore", () => {
   const isSyncing = ref(false);
   const currentVersion = ref("LOADING");
   const latestVersion = ref("LOADING");
+  const bottomBar = ref<BottomBarUpdateEvent>({fileProgress: '', downloadSpeed: ''});
 
   communication.getVersion(v => {
       currentVersion.value = v;
@@ -54,8 +55,11 @@ export const useUiStore = defineStore("uiStore", () => {
         .with({type: 'syncStatus', isSyncing: P.select()}, (isSyncingStatus) => {
           isSyncing.value = isSyncingStatus;
         })
+        .with({type: 'updateBottomBar', content: P.select()}, (bottomBarEvent) => {
+            bottomBar.value = bottomBarEvent;
+        })
         .otherwise(() => {console.log("not here")});
   })
 
-  return { config, configLoaded, logs, isSyncing, currentVersion, latestVersion };
+  return { config, configLoaded, logs, isSyncing, currentVersion, latestVersion, bottomBar };
 });

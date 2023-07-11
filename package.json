@@ -1,8 +1,9 @@
 {
   "name": "weebsync",
-  "version": "0.6.0a",
+  "version": "0.6.0b",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
+  "type": "module",
   "private": true,
   "bin": "build/index.js",
   "pkg": {
@@ -15,7 +16,7 @@
     "client:dev": "cd client && yarn dev",
     "server:dev": "cd server && yarn dev",
     "server:build": "cd server && yarn build",
-    "build": "yarn run client:build && yarn run server:build",
+    "build": "yarn run client:build && yarn run server:build && rollup -c",
     "start": "node build/index.mjs",
     "lint": "eslint -c .eslintrc --ext .ts ./src"
   },
@@ -30,5 +31,13 @@
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0"
+  },
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^25.0.2",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "pkg": "^5.8.1",
+    "rollup": "^3.26.2",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }
