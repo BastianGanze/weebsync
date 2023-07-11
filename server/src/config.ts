@@ -14,7 +14,8 @@ const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.env.INIT_CWD
   ? process.env.INIT_CWD
   : __dirname;
-export const CONFIG_FILE_PATH = `${PATH_TO_EXECUTABLE}/config/${CONFIG_NAME}`;
+export const CONFIG_FILE_DIR = `${PATH_TO_EXECUTABLE}/config`;
+export const CONFIG_FILE_PATH = `${CONFIG_FILE_DIR}/${CONFIG_NAME}`;
 
 export function watchConfigChanges(applicationState: ApplicationState): void {
   const configWatcher = chokidar.watch(CONFIG_FILE_PATH);
@@ -145,6 +146,7 @@ function getConfig(): GetConfigResult {
           const result = (e as NodeJS.ErrnoException).code;
           if (result === "ENOENT") {
             const config = createDefaultConfig();
+            fs.mkdirSync(CONFIG_FILE_DIR, {recursive: true});
             fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 4));
             return { type: "Ok", data: config };
           }

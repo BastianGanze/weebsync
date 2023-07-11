@@ -20,7 +20,7 @@ export class Communication {
         delete this.socket;
       });
       socket.on("getVersion", (data, cb) => {
-        cb("1.4.5");
+        cb("__APP_VERSION__");
       });
       socket.on("getLatestVersion", (data, cb) => {
         fetch("https://api.github.com/repos/BastianGanze/weebsync/releases/latest")

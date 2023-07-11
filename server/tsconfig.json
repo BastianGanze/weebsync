@@ -8,6 +8,7 @@
     "outDir": "build",
     "esModuleInterop": true,
     "experimentalDecorators": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "types": [
       "@types/node"
