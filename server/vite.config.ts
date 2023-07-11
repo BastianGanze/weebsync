@@ -12,11 +12,8 @@ const config: UserConfig = {
   },
   base: "",
   build: {
-    lib: {
-      entry: resolve("src/index.ts"),
-      name: "server",
-      fileName: "server",
-    },
+    outDir: "../build",
+    target: 'esnext',
   },
   plugins: [
     tsconfigPaths(),

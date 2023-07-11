@@ -27,11 +27,20 @@ export const useUiStore = defineStore("uiStore", () => {
   let config = ref(createDefaultConfig());
   const configLoaded = ref(false);
   const isSyncing = ref(false);
+  const currentVersion = ref("LOADING");
+  const latestVersion = ref("LOADING");
+
+  communication.getVersion(v => {
+      currentVersion.value = v;
+  });
+
+    communication.getLatestVersion(v => {
+        latestVersion.value = v;
+    });
 
   communication.dataEvents.sub((event) => {
     match(event)
         .with({type: 'config', content: P.select()}, (configFromServer) => {
-          console.log("config loaded");
           config.value = configFromServer;
           configLoaded.value = true;
         })
@@ -48,5 +57,5 @@ export const useUiStore = defineStore("uiStore", () => {
         .otherwise(() => {console.log("not here")});
   })
 
-  return { config, configLoaded, logs, isSyncing };
+  return { config, configLoaded, logs, isSyncing, currentVersion, latestVersion };
 });

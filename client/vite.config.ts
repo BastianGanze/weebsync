@@ -14,7 +14,7 @@ const config: UserConfig = {
   },
   base: "",
   build: {
-    outDir: "build/client",
+    outDir: "../build/client",
     target: "es2015",
   },
   plugins: [Vue(), UnpluginVueComponents.vite(), VitePluginVuetify()],

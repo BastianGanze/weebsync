@@ -4,10 +4,19 @@
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
   "private": true,
+  "bin": "build/index.js",
+  "pkg": {
+    "assets": [
+      "client/**/*"
+    ]
+  },
   "scripts": {
     "client:build": "cd client && yarn build",
     "client:dev": "cd client && yarn dev",
     "server:dev": "cd server && yarn dev",
+    "server:build": "cd server && yarn build",
+    "build": "yarn run client:build && yarn run server:build",
+    "start": "node build/index.mjs",
     "lint": "eslint -c .eslintrc --ext .ts ./src"
   },
   "author": "Bastian Ganze",

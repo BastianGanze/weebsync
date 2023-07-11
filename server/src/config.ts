@@ -5,11 +5,16 @@ import { Config } from "@shared/types";
 import { ApplicationState } from "./index";
 import {Communication} from "./communication";
 
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.env.INIT_CWD
   ? process.env.INIT_CWD
-  : process.env.PORTABLE_EXECUTABLE_DIR;
-export const CONFIG_FILE_PATH = `${PATH_TO_EXECUTABLE}/${CONFIG_NAME}`;
+  : __dirname;
+export const CONFIG_FILE_PATH = `${PATH_TO_EXECUTABLE}/config/${CONFIG_NAME}`;
 
 export function watchConfigChanges(applicationState: ApplicationState): void {
   const configWatcher = chokidar.watch(CONFIG_FILE_PATH);

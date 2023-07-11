@@ -1,5 +1,12 @@
 [![Build/release](https://github.com/BastianGanze/weebsync/actions/workflows/main.yml/badge.svg)](https://github.com/BastianGanze/weebsync/actions/workflows/main.yml)
 
+# Run as Docker container
+
+```
+docker build -t weebsync .
+docker run -d --name weebsync -p 42380:42380 -v /home/user/wsconfig/:/build/config weebsync
+```
+
 # Example Config
 
 `syncOnStart`, `autoSyncIntervalInMinutes`, `debugFileNames` and `startAsTray` are optional. Default values below.

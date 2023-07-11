@@ -19,6 +19,16 @@ export class Communication {
       this.socket.on("disconnect", () => {
         delete this.socket;
       });
+      socket.on("getVersion", (data, cb) => {
+        cb("1.4.5");
+      });
+      socket.on("getLatestVersion", (data, cb) => {
+        fetch("https://api.github.com/repos/BastianGanze/weebsync/releases/latest")
+            .then((res) => res.json())
+            .then((res) => {
+               cb(res.tag_name);
+            });
+      });
     });
   }
 

@@ -84,20 +84,6 @@
                       lg="2"
                     >
                       <v-switch
-                        v-model="config.startAsTray"
-                        class="config__switch"
-                        dense
-                        hide-details
-                        label="Start as tray"
-                      />
-                    </v-col>
-                    <v-col
-                      cols="12"
-                      sm="4"
-                      md="3"
-                      lg="2"
-                    >
-                      <v-switch
                         v-model="config.debugFileNames"
                         class="config__switch"
                         dense
@@ -380,7 +366,7 @@
               class="caption"
               dense
             >
-              <v-list-item>Version {{ version }}</v-list-item>
+              <v-list-item>Version {{ currentVersion }}</v-list-item>
               <v-list-item>
                 <span>For updates and general information look
                   <a
@@ -420,7 +406,7 @@ import dayjs from "dayjs";
 import {storeToRefs} from "pinia";
 import {mdiContentCopy, mdiDelete, mdiPlusCircleOutline} from "@mdi/js";
 
-const { logs, configLoaded, config, isSyncing } = storeToRefs(useUiStore());
+const { logs, configLoaded, config, isSyncing, currentVersion } = storeToRefs(useUiStore());
 const communication = useCommunication();
 
 communication.send({type: 'getLogs'});
@@ -429,7 +415,7 @@ communication.send({type: 'getConfig'});
 const fileProgress: string = "";
 const downloadSpeed: string = "";
 const tab = ref('tab-1');
-const version: string = "LOADING";
+
 const syncIntervalRules: Array<(value: number) => string | boolean> = [
   (v) => {
     console.log(v);
@@ -442,7 +428,7 @@ function formatDate(date: string): string {
 }
 
 function addSyncMap() {
-  this.config.syncMaps.unshift({
+  config.value.syncMaps.unshift({
     id: "",
     destinationFolder: "",
     fileRenameTemplate: "",
@@ -455,20 +441,20 @@ function addSyncMap() {
 function deleteSyncMap(event: MouseEvent, index: number) {
   event.preventDefault();
 
-  this.config.syncMaps.splice(index, 1);
+  config.value.syncMaps.splice(index, 1);
 }
 
 function copySyncMap(event: MouseEvent, index: number) {
   event.preventDefault();
 
-  this.config.syncMaps.splice(index + 1, 0, {
-    ...this.config.syncMaps[index],
+  config.value.syncMaps.splice(index + 1, 0, {
+    ...config.value.syncMaps[index],
   });
 }
 
 
 function sendConfig() {
-  communication.send({ type: "config", content: this.config });
+  communication.send({ type: "config", content: config.value });
 }
 
 function sync() {

@@ -14,6 +14,14 @@ export class Communication {
   send(command: ServerCommand) {
     this.socket.emit("server", command);
   }
+
+  getVersion(cb: (version: string) => void) {
+    this.socket.emit("getVersion", {}, cb);
+  }
+
+  getLatestVersion(cb: (version: string) => void) {
+    this.socket.emit("getLatestVersion", {}, cb);
+  }
 }
 
 const communication = new Communication();

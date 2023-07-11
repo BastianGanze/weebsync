@@ -25,6 +25,7 @@
     "vue-property-decorator": "^9.1.2"
   },
   "dependencies": {
+    "@fastify/static": "^6.10.2",
     "@fontsource/lato": "^5.0.4",
     "@mdi/font": "^7.1.96",
     "@mdi/js": "^7.1.96",
