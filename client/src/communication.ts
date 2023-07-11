@@ -7,7 +7,7 @@ export class Communication {
   dataEvents = new SimpleEventDispatcher<DataEvent>();
 
   constructor() {
-    this.socket = io('http://localhost:42380', {transports: ["websocket"]});
+    this.socket = io('', {transports: ["websocket"]});
     this.socket.on("dataEvent", (event) => this.dataEvents.dispatch(event));
   }
 
