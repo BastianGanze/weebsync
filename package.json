@@ -9,7 +9,11 @@
     "assets": [
       "build/client/**/*"
     ],
-    "targets": ["node18-linuxstatic", "node18-win-x64", "node18-mac-x64"]
+    "targets": [
+      "node18-linuxstatic",
+      "node18-win-x64",
+      "node18-mac-x64"
+    ]
   },
   "scripts": {
     "client:build": "cd client && yarn build",
@@ -30,7 +34,8 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
-    "eslint": "^8.44.0"
+    "eslint": "^8.44.0",
+    "pkg": "^5.8.1"
   },
   "dependencies": {
     "@rollup/plugin-commonjs": "^25.0.2",

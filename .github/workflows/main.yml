@@ -28,9 +28,6 @@ jobs:
       - name: Build Project
         run: yarn build
 
-      - name: Build Project
-        run: yarn global add pkg
-
       - name: Package Application
         run: yarn pkg .
 
