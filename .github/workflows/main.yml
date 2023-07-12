@@ -23,7 +23,7 @@ jobs:
             ${{ runner.OS }}-yarn-
 
       - name: Install Dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Build Project
         run: yarn build
@@ -31,8 +31,33 @@ jobs:
       - name: Package Application
         run: yarn pkg .
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Weebsync
-          path: ./dist
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linuxstatic, macos, win.exe]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Upload asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.build.outputs.upload_url }}
+          asset_path: ./dist/weebsync-${{ matrix.os }}
+          asset_name: weebsync-${{ matrix.os }}
+          asset_content_type: application/octet-stream
