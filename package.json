@@ -24,7 +24,7 @@
     "build": "yarn run client:build && yarn run server:build && rollup -c --bundleConfigAsCjs && rm build/index.mjs",
     "start": "node build/index.js",
     "lint": "eslint -c .eslintrc --ext .ts ./src",
-    "publish": "PACKAGE_VERSION=$(cat package.json | grep \\\"version\\\" | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && git tag v$PACKAGE_VERSION && git push --tags"
+    "publishVersion": "PACKAGE_VERSION=$(cat package.json | grep \\\"version\\\" | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && git tag v$PACKAGE_VERSION && git push --tags"
   },
   "author": "Bastian Ganze",
   "workspaces": {
