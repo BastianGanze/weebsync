@@ -34,7 +34,7 @@ jobs:
       - name: Package Application
         run: yarn pkg .
 
-      - run: ls -lA
+      - run: cd dist && ls -lA
 
       - name: Create Release
         id: create_release
