@@ -34,12 +34,6 @@ jobs:
       - name: Package Application
         run: yarn pkg .
 
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: weebsync
-          path: ./dist/
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -51,27 +45,33 @@ jobs:
           draft: false
           prerelease: false
 
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-
-  upload:
-    needs: build
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        os: [linuxstatic, macos, win.exe]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: weebsync
-          path: ./dist/
-      - name: Upload asset
+      - name: Upload linuxstatic
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.build.outputs.upload_url }}
-          asset_path: ./dist/weebsync-${{ matrix.os }}
-          asset_name: weebsync-${{ matrix.os }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/weebsync-linuxstatic
+          asset_name: weebsync-linuxstatic
           asset_content_type: application/octet-stream
+
+      - name: Upload macos
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/weebsync-macos
+          asset_name: weebsync-macos
+          asset_content_type: application/octet-stream
+
+      - name: Upload windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/weebsync-win.exe
+          asset_name: weebsync-win.exe
+          asset_content_type: application/octet-stream
+
