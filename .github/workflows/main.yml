@@ -45,6 +45,9 @@ jobs:
           draft: false
           prerelease: false
 
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+
   upload:
     needs: build
     runs-on: ubuntu-latest
