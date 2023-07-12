@@ -1,34 +1,77 @@
-name: Build/release
+name: Node.js CI
 
-on: 
+on:
   push:
     tags:
-    - 'v[0-9]+.[0-9]+.[0-9]+'
-  
-jobs:
-  release:
-    runs-on: ${{ matrix.os }}
+       - 'v[0-9]+.[0-9]+.[0-9]+'
 
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest]
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v2
-
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
 
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
         with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          github_token: ${{ secrets.github_token }}
+          path: ~/.yarn
+          key: ${{ runner.OS }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.OS }}-yarn-
 
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Project
+        run: yarn build
+
+      - name: Package Application
+        run: yarn pkg .
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload linuxstatic
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/weebsync-linuxstatic
+          asset_name: weebsync-linuxstatic
+          asset_content_type: application/octet-stream
+
+      - name: Upload macos
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/weebsync-macos
+          asset_name: weebsync-macos
+          asset_content_type: application/octet-stream
+
+      - name: Upload windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/weebsync-win.exe
+          asset_name: weebsync-win.exe
+          asset_content_type: application/octet-stream
+

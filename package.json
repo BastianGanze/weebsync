@@ -1,69 +1,48 @@
 {
   "name": "weebsync",
-  "version": "0.5.14",
+  "version": "0.6.0",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
-  "main": "./build/main.js",
-  "scripts": {
-    "build-main-preload": "node build.js",
-    "build-renderer": "vite build",
-    "build": "yarn run build-renderer && yarn run build-main-preload",
-    "watch": "tsc -w",
-    "lint": "eslint -c .eslintrc --ext .ts ./src",
-    "start": "npm run build && electron ./build/main.js",
-    "app:dist": "yarn build && electron-builder -p never --win",
-    "postinstall": "electron-builder install-app-deps"
-  },
-  "build": {
-    "appId": "weeb.sync",
-    "productName": "weebsync",
-    "files": [
-      "build/**/*",
-      "static/**/*"
+  "private": true,
+  "bin": "build/index.js",
+  "pkg": {
+    "assets": [
+      "build/client/**/*"
     ],
-    "mac": {
-      "category": "files.sync",
-      "icon": "static/icon.icns"
-    },
-    "win": {
-      "target": "portable",
-      "icon": "static/icon.ico"
-    }
+    "outputPath": "dist",
+    "targets": [
+      "node18-linuxstatic",
+      "node18-win-x64",
+      "node18-mac-x64"
+    ]
+  },
+  "scripts": {
+    "client:build": "cd client && yarn build",
+    "client:dev": "cd client && yarn dev",
+    "server:dev": "cd server && yarn dev",
+    "server:build": "cd server && yarn build",
+    "build": "yarn run client:build && yarn run server:build && rollup -c --bundleConfigAsCjs && rm build/index.mjs",
+    "start": "node build/index.js",
+    "lint": "eslint -c .eslintrc --ext .ts ./src"
   },
   "author": "Bastian Ganze",
+  "workspaces": {
+    "packages": [
+      "client",
+      "server"
+    ]
+  },
   "devDependencies": {
-    "@types/node": "^17.0.8",
-    "@types/progress-stream": "^2.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "electron": "22.0.2",
-    "electron-builder": "^23.6.0",
-    "esbuild": "^0.14.11",
-    "eslint": "^7.32.0",
-    "prettier": "^2.8.3",
-    "sass": "1.32.13",
-    "sass-loader": "^10.1.1",
-    "typescript": "4.5",
-    "vue": "^2.6.12",
-    "vue-class-component": "^7.2.6",
-    "vue-property-decorator": "^9.1.2",
-    "vue-router": "^3.5.1",
-    "vuex": "^3.6.2"
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
+    "eslint": "^8.44.0",
+    "pkg": "^5.8.1"
   },
   "dependencies": {
-    "@fontsource/lato": "^4.5.0",
-    "@mdi/font": "^7.1.96",
-    "@mdi/js": "^7.1.96",
-    "basic-ftp": "^5.0.2",
-    "chokidar": "^3.5.2",
-    "handlebars": "^4.7.7",
-    "strongly-typed-events": "^2.1.14",
-    "ts-pattern": "^4.1.3",
-    "vite": "^2.0.2",
-    "vite-plugin-components": "^0.13.2",
-    "vite-plugin-vue2": "^1.2.1",
-    "vue-template-compiler": "^2.6.12",
-    "vue2-perfect-scrollbar": "^1.5.2",
-    "vuetify": "^2.6.2"
+    "@rollup/plugin-commonjs": "^25.0.2",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "rollup": "^3.26.2",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }
