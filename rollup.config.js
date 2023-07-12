@@ -6,8 +6,8 @@ import {terser} from "rollup-plugin-terser";
 export default {
     input: 'build/index.mjs',
     output: {
-        file: 'build/index.mjs',
-        format: 'es',
+        file: 'build/index.js',
+        format: 'cjs',
         name: 'Weebsync',
     },
     plugins: [

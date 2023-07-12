@@ -11,8 +11,8 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const CONFIG_NAME = "weebsync.config.json";
-export const PATH_TO_EXECUTABLE: string = process.env.INIT_CWD
-  ? process.env.INIT_CWD
+export const PATH_TO_EXECUTABLE: string = process.cwd()
+  ? process.cwd()
   : __dirname;
 export const CONFIG_FILE_DIR = `${PATH_TO_EXECUTABLE}/config`;
 export const CONFIG_FILE_PATH = `${CONFIG_FILE_DIR}/${CONFIG_NAME}`;

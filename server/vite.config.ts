@@ -29,7 +29,8 @@ const config: UserConfig = {
     port: 8081,
   },
   define: {
-    __APP_VERSION__: `v${version}`
+    __APP_VERSION__: `v${version}`,
+    __URL_TO_CLIENT_FILES__: process.env.WEEB_SYNC_URL_TO_CLIENT_FILES ? process.env.WEEB_SYNC_URL_TO_CLIENT_FILES : 'client'
   }
 };
 
