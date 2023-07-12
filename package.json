@@ -9,6 +9,7 @@
     "assets": [
       "build/client/**/*"
     ],
+    "outputPath": "dist",
     "targets": [
       "node18-linuxstatic",
       "node18-win-x64",
