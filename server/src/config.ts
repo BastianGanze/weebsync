@@ -7,6 +7,7 @@ import {Communication} from "./communication";
 
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import process from "process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -14,7 +15,7 @@ const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.cwd()
   ? process.cwd()
   : __dirname;
-export const CONFIG_FILE_DIR = `${PATH_TO_EXECUTABLE}/config`;
+export const CONFIG_FILE_DIR = process.env.WEEB_SYNC_CONFIG_DIR ?? `${PATH_TO_EXECUTABLE}/config`;
 export const CONFIG_FILE_PATH = `${CONFIG_FILE_DIR}/${CONFIG_NAME}`;
 
 export function watchConfigChanges(applicationState: ApplicationState): void {

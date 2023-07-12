@@ -24,7 +24,7 @@ const server = Fastify({
   logger: true,
 });
 server.register(socketIoFastify, {cors: {origin: '*'}, transports: ["websocket"]});
-server.register(staticFastify, {root: join(__dirname, '__URL_TO_CLIENT_FILES__')});
+server.register(staticFastify, {root: join(__dirname, 'client')});
 
 server.get('/', function (req, reply) {
   reply.sendFile('index.html');

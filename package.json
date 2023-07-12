@@ -1,6 +1,6 @@
 {
   "name": "weebsync",
-  "version": "0.6.0b",
+  "version": "0.6.0",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
   "private": true,
@@ -21,8 +21,8 @@
     "client:dev": "cd client && yarn dev",
     "server:dev": "cd server && yarn dev",
     "server:build": "cd server && yarn build",
-    "build": "yarn run client:build && yarn run server:build && rollup -c --bundleConfigAsCjs",
-    "start": "node build/index.mjs",
+    "build": "yarn run client:build && yarn run server:build && rollup -c --bundleConfigAsCjs && rm build/index.mjs",
+    "start": "node build/index.js",
     "lint": "eslint -c .eslintrc --ext .ts ./src"
   },
   "author": "Bastian Ganze",
