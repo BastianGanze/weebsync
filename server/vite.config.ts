@@ -4,7 +4,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { VitePluginNode } from "vite-plugin-node";
 const resolve = (dir: string) => join(__dirname, dir);
 // @ts-ignore
-import {version} from './package.json';
+import {version} from '../package.json';
 
 const config: UserConfig = {
   resolve: {

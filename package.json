@@ -1,6 +1,6 @@
 {
   "name": "weebsync",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
   "private": true,
@@ -23,7 +23,8 @@
     "server:build": "cd server && yarn build",
     "build": "yarn run client:build && yarn run server:build && rollup -c --bundleConfigAsCjs && rm build/index.mjs",
     "start": "node build/index.js",
-    "lint": "eslint -c .eslintrc --ext .ts ./src"
+    "lint": "eslint -c .eslintrc --ext .ts ./src",
+    "publish": "PACKAGE_VERSION=$(cat package.json | grep \\\"version\\\" | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && git tag v$PACKAGE_VERSION && git push --tags"
   },
   "author": "Bastian Ganze",
   "workspaces": {
