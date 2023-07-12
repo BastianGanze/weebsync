@@ -1,14 +1,14 @@
 <template>
   <div>
     <v-icon
-      v-if="!showLink && version !== latestVersion"
+      v-if="!showLink && currentVersion !== latestVersion"
       :title="`New Version available! (${latestVersion})`"
       small
       :icon="mdiAlert"
       color="yellow"
     />
     <a
-      v-if="showLink && version !== latestVersion"
+      v-if="showLink && currentVersion !== latestVersion"
       class="text-decoration-none"
       target="_blank"
       href="https://github.com/BastianGanze/weebsync/releases/latest"
@@ -18,7 +18,7 @@
       color="yellow"
     /> Click here to download
       newest version.</a>
-    <span v-if="showLink && version === latestVersion">Weebsync is up to date.</span>
+    <span v-if="showLink && currentVersion === latestVersion">Weebsync is up to date.</span>
   </div>
 </template>
 
@@ -27,6 +27,6 @@ import {mdiAlert} from "@mdi/js";
 import {useUiStore} from "./store";
 import {storeToRefs} from "pinia";
 
-const {version, latestVersion} = storeToRefs(useUiStore());
+const {currentVersion, latestVersion} = storeToRefs(useUiStore());
 defineProps<{showLink?: Boolean}>();
 </script>
