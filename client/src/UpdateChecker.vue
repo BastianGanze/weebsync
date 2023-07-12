@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="!loading">
     <v-icon
       v-if="!showLink && currentVersion !== latestVersion"
       :title="`New Version available! (${latestVersion})`"
@@ -26,7 +26,10 @@
 import {mdiAlert} from "@mdi/js";
 import {useUiStore} from "./store";
 import {storeToRefs} from "pinia";
+import {computed} from "vue";
 
 const {currentVersion, latestVersion} = storeToRefs(useUiStore());
+const loading = computed(() => currentVersion.value === 'LOADING' || latestVersion.value === 'LOADING');
+
 defineProps<{showLink?: Boolean}>();
 </script>
