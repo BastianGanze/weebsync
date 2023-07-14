@@ -11,10 +11,7 @@ export async function init(server: FastifyInstance) {
 
     const applicationState = await setupApplication(communication);
     toggleAutoSync(applicationState, true);
-    communication.dispatch({
-        type: "config",
-        content: JSON.parse(JSON.stringify(applicationState.config)),
-    });
+    communication.config(JSON.parse(JSON.stringify(applicationState.config)));
 
     watchConfigChanges(applicationState);
 

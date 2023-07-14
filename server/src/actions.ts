@@ -3,15 +3,10 @@ import {getFTPClient} from "./ftp";
 import {ApplicationState} from "./index";
 
 export async function listDir(path: string, applicationState: ApplicationState) {
-    await match(await getFTPClient(applicationState.config, applicationState.communication))
+    return await match(await getFTPClient(applicationState.config, applicationState.communication))
         .with({type: "Ok", data: P.select()}, async (client) => {
             try {
-                const result = await client.listDir(path);
-                applicationState.communication.dispatch({
-                    type: "listDir",
-                    path,
-                    result,
-                });
+                return await client.listDir(path);
             } catch (err) {
                 applicationState.communication.logError(`FTP Connection error: ${err}"`);
             }
@@ -23,23 +18,21 @@ export async function listDir(path: string, applicationState: ApplicationState) 
 }
 
 export async function checkDir(path: string, applicationState: ApplicationState) {
-    await match(await getFTPClient(applicationState.config, applicationState.communication))
+    return await match(await getFTPClient(applicationState.config, applicationState.communication))
         .with({ type: "Ok", data: P.select() }, async (client) => {
             try {
                 await client.cd(path);
-                applicationState.communication.dispatch({
-                    type: "checkDir",
-                    exists: true,
-                });
+                return true;
             } catch (err) {
-                applicationState.communication.dispatch({
-                    type: "checkDir",
-                    exists: false,
-                });
+                return false;
             }
         })
         .with({ type: "ConnectionError", message: P.select() }, async (err) =>
-            applicationState.communication.logError(`FTP Connection error: ${err}"`),
+            {
+                applicationState.communication.logError(`FTP Connection error: ${err}"`);
+
+                return false;
+            }
         )
         .exhaustive();
 }

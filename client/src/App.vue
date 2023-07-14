@@ -409,9 +409,6 @@ import {mdiContentCopy, mdiDelete, mdiPlusCircleOutline} from "@mdi/js";
 const { logs, configLoaded, config, isSyncing, currentVersion, bottomBar } = storeToRefs(useUiStore());
 const communication = useCommunication();
 
-communication.send({type: 'getLogs'});
-communication.send({type: 'getConfig'});
-
 const tab = ref('tab-1');
 
 const syncIntervalRules: Array<(value: number) => string | boolean> = [
@@ -452,11 +449,11 @@ function copySyncMap(event: MouseEvent, index: number) {
 
 
 function sendConfig() {
-  communication.send({ type: "config", content: config.value });
+  communication.config(config.value);
 }
 
 function sync() {
-  communication.send({ type: "sync" });
+  communication.sync();
 }
 
 function pathPicked(syncItem: SyncMap, update: string) {

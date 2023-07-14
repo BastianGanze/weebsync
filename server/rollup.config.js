@@ -4,9 +4,9 @@ import json from "@rollup/plugin-json";
 import {terser} from "rollup-plugin-terser";
 
 export default {
-    input: 'build/index.mjs',
+    input: '../build/index.mjs',
     output: {
-        file: 'build/index.js',
+        file: '../build/index.js',
         format: 'cjs',
         name: 'Weebsync',
     },

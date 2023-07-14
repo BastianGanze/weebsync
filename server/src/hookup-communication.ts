@@ -1,41 +1,49 @@
-import {match, P} from "ts-pattern";
 import {abortSync, syncFiles} from "./sync";
-import {checkDir, listDir} from "./actions";
 import {saveConfig} from "./config";
 import {ApplicationState} from "./index";
+import {Config} from "@shared/types";
+import {checkDir, listDir} from "./actions";
 
 export function hookupCommunicationEvents(
     applicationState: ApplicationState
 ) {
-    applicationState.communication.serverCommand.sub((command) => {
-        match(command)
-            .with({type: "sync"}, () => {
-                if (applicationState.syncInProgress) {
-                    abortSync();
-                } else {
-                    syncFiles(applicationState);
-                }
-            })
-            .with(
-                {type: "listDir", path: P.select()},
-                async (path) => await listDir(path, applicationState),
-            )
-            .with(
-                {type: "checkDir", path: P.select()},
-                async (path) => await checkDir(path, applicationState),
-            )
-            .with({type: "config", content: P.select()}, (config) =>
-                saveConfig(config, applicationState.communication),
-            )
-            .with({type: "getLogs"}, () =>
-                applicationState.communication.dispatch({
-                    type: 'logs',
-                    content: applicationState.communication.logs.getAll().filter(v => v)
-                }),
-            )
-            .with({type: "getConfig"}, () =>
-                applicationState.communication.dispatch({type: 'config', content: applicationState.config}),
-            )
-            .exhaustive();
-    });
+    applicationState.communication.connect.sub((socket) => {
+
+        socket.on("getLogs", (cb) => {
+            cb(applicationState.communication.logs.getAll().filter(v => v));
+        });
+        socket.on("getVersion", (cb) => {
+            cb(process.env.__APP_VERSION__);
+        });
+        socket.on("getLatestVersion", (cb) => {
+            fetch("https://api.github.com/repos/BastianGanze/weebsync/releases/latest")
+                .then((res) => res.json())
+                .then((res) => {
+                    cb(res.tag_name);
+                });
+        });
+        socket.on("sync", () => {
+            if (applicationState.syncInProgress) {
+                abortSync();
+            } else {
+                syncFiles(applicationState);
+            }
+        });
+        socket.on("config", (config: Config) => {
+            saveConfig(config, applicationState.communication);
+        });
+        socket.on("getConfig", (cb) => {
+            cb(applicationState.config);
+        });
+        socket.on("listDir", async (path, cb) => {
+            const info = await listDir(path, applicationState);
+            if (info) {
+                cb(path, info);
+            }
+        });
+        socket.on("checkDir", async (path, cb) => {
+            console.log(path);
+            cb(await checkDir(path, applicationState));
+        });
+    })
 }

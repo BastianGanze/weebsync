@@ -96,10 +96,10 @@ interface TreeChild {
 const emit = defineEmits(['save'])
 
 function save() {
-  if (this.loading) {
+  if (loading.value) {
     return;
   }
-  this.dialog = false;
+  dialog.value = false;
   emit('save', current.value.path);
 }
 
@@ -139,8 +139,8 @@ function getIconColor(): string {
 }
 
 function pathUp() {
-  if (this.current.path.includes("/")) {
-    fetchDirectory(this.current.path.split("/").slice(0, -1).join("/"));
+  if (current.value.path.includes("/")) {
+    fetchDirectory(current.value.path.split("/").slice(0, -1).join("/"));
   }
 }
 
@@ -156,7 +156,6 @@ const communication = useCommunication();
 
 function checkDirectory(path: string): Promise<void> {
   if (!path) {
-    console.error("No path?!");
     return Promise.resolve();
   }
   if (loading.value) {
@@ -165,14 +164,11 @@ function checkDirectory(path: string): Promise<void> {
 
   loading.value = true;
   return new Promise((resolve) => {
-    communication.dataEvents.one((event) => {
+    communication.checkDir(path, (pathExists) => {
+      exists.value = pathExists;
       loading.value = false;
-      if (event.type === 'checkDir') {
-        exists.value = event.exists;
-      }
       resolve();
     })
-    communication.send({type: 'checkDir', path})
   });
 }
 
@@ -183,31 +179,26 @@ function fetchDirectory(itemPath: string) {
 
   loading.value = true;
   return new Promise((resolve) => {
-    const path = itemPath;
-    communication.dataEvents.one((result) => {
+    communication.listDir(itemPath, (path, result) => {
       loading.value = false;
-      if (result.type === 'listDir') {
-        console.log(result);
-            selectedItem.value = -1;
-            current.value = {
-              path: path,
-              name: path,
-              isDir: true,
-              children: [],
-              id: path,
-            };
-            current.value.children = result.result.map((r) => ({
-              id: `${current.value.path}/${r.name}`,
-              path: `${current.value.path}/${r.name}`,
-              isDir: r.type === 2,
-              name: r.name,
-              children: r.type === 2 ? [] : undefined,
-            }));
-      }
+      selectedItem.value = -1;
+      current.value = {
+        path: path,
+        name: path,
+        isDir: true,
+        children: [],
+        id: path,
+      };
+      current.value.children = result.map((r) => ({
+        id: `${current.value.path}/${r.name}`,
+        path: `${current.value.path}/${r.name}`,
+        isDir: r.type === 2,
+        name: r.name,
+        children: r.type === 2 ? [] : undefined,
+      }));
       resolve();
       }
     );
-    communication.send({type: 'listDir', path});
   });
 }
 

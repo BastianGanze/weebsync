@@ -1,35 +1,50 @@
-import { DataEvent, Log, ServerCommand } from "@shared/types";
+import {
+  BottomBarUpdateEvent,
+  ClientToServerEvents, Config, InterServerEvents,
+  Log,
+  ServerToClientEvents
+} from "@shared/types";
 import { Server, Socket } from "socket.io";
-import { SimpleEventDispatcher } from "strongly-typed-events";
 import { RingBuffer } from "./ring-buffer";
 import {FastifyInstance} from "fastify";
 import {match} from "ts-pattern";
+import {SimpleEventDispatcher} from "strongly-typed-events";
 
 export class Communication {
-  logs = new RingBuffer<Log>();
-  serverCommand = new SimpleEventDispatcher<ServerCommand>();
-  socket: Socket | undefined;
+  private _socket: Socket<ClientToServerEvents,
+      ServerToClientEvents,
+      InterServerEvents> | undefined;
 
-  constructor(public io: Server, private _logger: FastifyInstance['log']) {
+  logs = new RingBuffer<Log>();
+  connect = new SimpleEventDispatcher<typeof this._socket>();
+  constructor(public io: Server<ClientToServerEvents,
+      ServerToClientEvents,
+      InterServerEvents>, private _logger: FastifyInstance['log']) {
     io.on("connect", (socket) => {
-      socket.on("server", (event) => {
-        this.serverCommand.dispatch(event as ServerCommand);
+      this._socket = socket;
+      this._socket.on("disconnect", () => {
+        delete this._socket;
       });
-      this.socket = socket;
-      this.socket.on("disconnect", () => {
-        delete this.socket;
-      });
-      socket.on("getVersion", (data, cb) => {
-        cb("__APP_VERSION__");
-      });
-      socket.on("getLatestVersion", (data, cb) => {
-        fetch("https://api.github.com/repos/BastianGanze/weebsync/releases/latest")
-            .then((res) => res.json())
-            .then((res) => {
-               cb(res.tag_name);
-            });
-      });
+      this.connect.dispatch(socket);
     });
+  }
+
+  syncStatus(status: boolean) {
+    if (this._socket) {
+      this._socket.emit("syncStatus", status);
+    }
+  }
+
+  updateBottomBar(updateBottomBarEvent: BottomBarUpdateEvent) {
+    if (this._socket) {
+      this._socket.emit("updateBottomBar", updateBottomBarEvent);
+    }
+  }
+
+  config(config: Config) {
+    if (this._socket) {
+      this._socket.emit("config", config);
+    }
   }
 
   logInfo(content: string) {
@@ -57,13 +72,8 @@ export class Communication {
         .with('error', () => this._logger.error(log))
         .with('warn', () => this._logger.warn(log))
         .exhaustive();
-    this.dispatch({ type: "log", content: log });
-  }
-
-  dispatch(dataEvent: DataEvent): void {
-    if (!this.socket) {
-      return;
+    if (this._socket) {
+      this._socket.emit("log", log);
     }
-    this.socket.emit("dataEvent", dataEvent);
   }
 }

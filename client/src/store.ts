@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 import {BottomBarUpdateEvent, Config, Log} from "@shared/types";
 import {reactive, ref} from "vue";
 import { useCommunication} from "./communication";
-import {match, P} from "ts-pattern";
 
 export function createDefaultConfig(): Config {
   return {
@@ -39,27 +38,30 @@ export const useUiStore = defineStore("uiStore", () => {
         latestVersion.value = v;
     });
 
-  communication.dataEvents.sub((event) => {
-    match(event)
-        .with({type: 'config', content: P.select()}, (configFromServer) => {
-          config.value = configFromServer;
-          configLoaded.value = true;
-        })
-        .with({type: 'log', content: P.select()}, (log) => {
-          logs.push(log);
-        })
-        .with({type: 'logs', content: P.select()}, (logsFromServer) => {
-          logs.splice(0, logs.length);
-          logs.push(... logsFromServer);
-        })
-        .with({type: 'syncStatus', isSyncing: P.select()}, (isSyncingStatus) => {
-          isSyncing.value = isSyncingStatus;
-        })
-        .with({type: 'updateBottomBar', content: P.select()}, (bottomBarEvent) => {
-            bottomBar.value = bottomBarEvent;
-        })
-        .otherwise(() => {console.log("not here")});
-  })
+    communication.getLogs((logsFromServer) => {
+        logs.splice(0, logs.length);
+        logs.push(... logsFromServer);
+    });
+    communication.getConfig((configFromServer) => {
+        config.value = configFromServer;
+        configLoaded.value = true;
+    });
+
+    communication.socket.on("log", (log) => {
+        logs.push(log);
+    });
+
+    communication.socket.on("config", (configFromServer) => {
+        config.value = configFromServer;
+    });
+
+    communication.socket.on("updateBottomBar", (bottomBarEvent) => {
+        bottomBar.value = bottomBarEvent;
+    });
+
+    communication.socket.on("syncStatus", (isSyncingStatus) => {
+        isSyncing.value = isSyncingStatus;
+    });
 
   return { config, configLoaded, logs, isSyncing, currentVersion, latestVersion, bottomBar };
 });

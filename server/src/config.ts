@@ -38,10 +38,7 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
     if (tmpConfig) {
       applicationState.config = tmpConfig;
       applicationState.communication.logInfo("Config successfully updated.");
-      applicationState.communication.dispatch({
-        type: "config",
-        content: JSON.parse(JSON.stringify(tmpConfig)),
-      });
+      applicationState.communication.config(JSON.parse(JSON.stringify(tmpConfig)));
     } else {
       applicationState.communication.logError(
         "Config was broken, will keep the old config for now.",

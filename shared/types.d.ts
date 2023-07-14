@@ -1,8 +1,4 @@
-import { FileInfo } from "basic-ftp";
-
-export type CommunicationChannelMessage =
-  | { channel: "server"; content: ServerCommand }
-  | { channel: "dataUpdate"; content: DataEvent };
+import { FileInfo as FileInformation } from "basic-ftp";
 
 export type Log = {
     date: string;
@@ -10,13 +6,27 @@ export type Log = {
     severity: 'info' | 'warn' | 'error' | 'debug'
 }
 
-export type ServerCommand =
-  | { type: "listDir"; path: string }
-  | { type: "checkDir"; path: string }
-  | { type: "sync" }
-  | { type: "config"; content: Config }
-    | { type: "getLogs"; }
-    | { type: "getConfig"; };
+export interface ServerToClientEvents {
+    log: (log: Log) => void;
+    updateBottomBar: (content: BottomBarUpdateEvent) => void;
+    syncStatus: (syncStatus: boolean) => void;
+    config: (config: Config) => void;
+}
+
+export interface ClientToServerEvents {
+    getLogs: (cb: (logs: Log[]) => void) => void;
+    getVersion: (cb: (version: string) => void) => void;
+    getLatestVersion: (cb: (version: string) => void) => void;
+    listDir: (path: string, cb: (path: string, result: FileInfo[]) => void) => void;
+    checkDir: (path: string, cb: (exists: boolean) => void) => void;
+    config: (config: Config) => void;
+    getConfig: (cb: (config: Config) => void) => void;
+    sync: () => void;
+}
+
+export interface InterServerEvents {
+    ping: () => void;
+}
 
 export interface Config {
     syncOnStart?: boolean;
@@ -41,24 +51,7 @@ export interface SyncMap {
     rename: boolean;
 }
 
-export type DataEvent =
-  | {
-      type: "listDir";
-      path: string;
-      result: FileInfo[];
-    }
-  | {
-      type: "checkDir";
-      exists: boolean;
-    }
-  | {
-      type: "syncStatus";
-      isSyncing: boolean;
-    }
-  | { type: "log"; content: Log }
-    | { type: "logs"; content: Log[] }
-  | { type: "updateBottomBar"; content: BottomBarUpdateEvent }
-  | { type: "config"; content: Config };
+export type FileInfo = FileInformation;
 
 export interface BottomBarUpdateEvent {
   fileProgress: string;

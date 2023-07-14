@@ -71,10 +71,7 @@ function updateSyncStatus(
   status: boolean,
 ) {
   applicationState.syncInProgress = status;
-  applicationState.communication.dispatch({
-    type: "syncStatus",
-    isSyncing: status,
-  });
+  applicationState.communication.syncStatus(status);
 }
 
 export function toggleAutoSync(

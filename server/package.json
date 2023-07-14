@@ -5,15 +5,16 @@
   "license": "MIT",
   "main": "./build/main.js",
   "scripts": {
-    "build": "vite build",
+    "build": "ts-node --skipProject build.ts && rollup -c --bundleConfigAsCjs && rm ../build/index.mjs",
     "dev": "vite dev"
   },
   "author": "Bastian Ganze",
   "devDependencies": {
     "@types/node": "^20.4.1",
-    "typescript": "5.1.6",
-    "vite-plugin-node": "^3.0.2",
-    "vite-tsconfig-paths": "^4.2.0"
+    "esbuild": "^0.18.11",
+    "rollup-plugin-esbuild": "^5.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "5.1.6"
   },
   "dependencies": {
     "basic-ftp": "^5.0.3",
