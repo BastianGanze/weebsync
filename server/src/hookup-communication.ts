@@ -42,7 +42,6 @@ export function hookupCommunicationEvents(
             }
         });
         socket.on("checkDir", async (path, cb) => {
-            console.log(path);
             cb(await checkDir(path, applicationState));
         });
     })
