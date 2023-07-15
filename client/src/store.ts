@@ -42,9 +42,14 @@ export const useUiStore = defineStore("uiStore", () => {
         logs.splice(0, logs.length);
         logs.push(... logsFromServer);
     });
+
     communication.getConfig((configFromServer) => {
         config.value = configFromServer;
         configLoaded.value = true;
+    });
+
+    communication.getSyncSatus((syncStatusFromServer) => {
+        isSyncing.value = syncStatusFromServer;
     });
 
     communication.socket.on("log", (log) => {

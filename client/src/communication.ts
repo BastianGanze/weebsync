@@ -36,6 +36,9 @@ export class Communication {
     this.socket.emit("getConfig", cb);
   }
 
+  getSyncSatus(cb: (syncStatus: boolean) => void) {
+    this.socket.emit("getSyncStatus", cb);
+  }
   sync() {
     this.socket.emit("sync");
   }

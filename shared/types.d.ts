@@ -21,6 +21,7 @@ export interface ClientToServerEvents {
     checkDir: (path: string, cb: (exists: boolean) => void) => void;
     config: (config: Config) => void;
     getConfig: (cb: (config: Config) => void) => void;
+    getSyncStatus: (cb: (syncStatus: boolean) => void) => void;
     sync: () => void;
 }
 

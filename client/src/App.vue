@@ -171,6 +171,7 @@
               small
               elevation="0"
               class="config__save-button"
+              :disabled="isSyncing"
               @click="sendConfig()"
             >
               Save
@@ -343,8 +344,8 @@
             <v-btn
               small
               elevation="0"
-              :disabled="isSyncing"
               class="config__save-button"
+              :disabled="isSyncing"
               @click="sendConfig()"
             >
               Save

@@ -15,6 +15,9 @@ export function hookupCommunicationEvents(
         socket.on("getVersion", (cb) => {
             cb(process.env.__APP_VERSION__);
         });
+        socket.on("getSyncStatus", (cb) => {
+            cb(applicationState.syncInProgress);
+        });
         socket.on("getLatestVersion", (cb) => {
             fetch("https://api.github.com/repos/BastianGanze/weebsync/releases/latest")
                 .then((res) => res.json())
