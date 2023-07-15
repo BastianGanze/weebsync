@@ -5,7 +5,7 @@ export class Communication {
   public socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 
   constructor() {
-    this.socket = io('http://0.0.0.0:42380', {transports: ["websocket"]});
+    this.socket = io('', {transports: ["websocket"]});
   }
 
   getVersion(cb: (version: string) => void) {

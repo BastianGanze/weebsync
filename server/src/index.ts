@@ -31,7 +31,7 @@ server.get('/', function (req, reply) {
 })
 
 server.listen({
-  host: '0.0.0.0',
+  host: process.env.WEEB_SYNC_SERVER_HOST ?? '0.0.0.0',
   port: process.env.WEEB_SYNC_SERVER_HTTP_PORT
       ? Number(process.env.WEEB_SYNC_SERVER_HTTP_PORT)
       : 42380,

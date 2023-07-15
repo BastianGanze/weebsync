@@ -18,7 +18,11 @@ If you don't set this, a config dir will be created automatically at the executa
 
 #### WEEB_SYNC_SERVER_HTTP_PORT
 default value is `42380`
-Determines on what port the application will run. It will always host on `0.0.0.0` for now.
+Determines on what port the application will run.
+
+#### WEEB_SYNC_SERVER_HOST
+default value is `0.0.0.0`
+Determines on what host the application will bind to.
 
 # Rename regex feature
 In the sync maps you can setup a filename regex and a rename template.
