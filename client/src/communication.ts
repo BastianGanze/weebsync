@@ -5,7 +5,8 @@ export class Communication {
   public socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 
   constructor() {
-    this.socket = io('', {transports: ["websocket"]});
+    // eslint-disable-next-line no-undef
+    this.socket = io(__HOST__, {transports: ["websocket"]});
   }
 
   getVersion(cb: (version: string) => void) {

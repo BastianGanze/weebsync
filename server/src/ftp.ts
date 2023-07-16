@@ -13,18 +13,32 @@ export type CreateFtpClientResult =
 
 export class FTP {
   private _client = new Client();
-  private _busy: boolean = false;
+  private _used = false;
   private _lastAction: Date = new Date();
   constructor(
     private _communication: Communication,
   ) {}
 
-  isBusy(): boolean {
-    return this._busy;
+  borrow() {
+    if (this._used) {
+      throw new Error("Tried to borrow while it was still borrowed?!");
+    }
+    this._used = true;
   }
 
-  getLastAction(): Date {
-    return this._lastAction;
+  free() {
+    if (!this._used) {
+      throw new Error("Tried to free while it was already freed?!");
+    }
+    this._used = false;
+  }
+
+  available(): boolean {
+    return !this._used;
+  }
+
+  getLastActionTime(): number {
+    return this._lastAction.getTime();
   }
 
   async connect(config: Config) {
@@ -39,30 +53,13 @@ export class FTP {
   }
 
   async listDir(path: string): Promise<FileInfo[]> {
-    this._busy = true;
     this._lastAction = new Date();
-    try {
-      const res = await this._client.list(path);
-      this._busy = false;
-      return res;
-    } catch (e) {
-      this._busy = false;
-      throw e;
-    }
-
+    return await this._client.list(path);
   }
 
   async cd(path: string): Promise<FTPResponse> {
-    this._busy = true;
     this._lastAction = new Date();
-    try {
-      const res = await this._client.cd(path);
-      this._busy = false;
-      return res;
-    } catch (e) {
-      this._busy = false;
-      throw e;
-    }
+    return await this._client.cd(path);
   }
 
   close(): void {
@@ -98,46 +95,60 @@ export class FTP {
       }
     });
 
-    this._busy = true;
     this._lastAction = new Date();
     try {
       await this._client.downloadTo(localFileStream, hostFilePath);
-      this._busy = false;
+    } finally {
       this._communication.updateBottomBar(
-         {
-          fileProgress: "",
-          downloadSpeed: "",
-        },
+          {
+            fileProgress: "",
+            downloadSpeed: "",
+          },
       );
-    } catch (e) {
-      this._busy = false;
-      this._communication.updateBottomBar({
-          fileProgress: "",
-          downloadSpeed: "",
-        });
-      throw e;
     }
   }
 }
 
-let ftps: FTP[] = [];
+let ftpConnections: FTP[] = [];
 const FTP_CONNECTION_TIMEOUT = 1000 * 60;
 setInterval(() => {
-  ftps = ftps.filter(ftp => (Date.now() - ftp.getLastAction().getTime()) > FTP_CONNECTION_TIMEOUT );
+  cleanFTPConnections();
 }, FTP_CONNECTION_TIMEOUT)
+
+function cleanFTPConnections() {
+  ftpConnections = ftpConnections.filter(ftp => {
+    if ((Date.now() - ftp.getLastActionTime()) > FTP_CONNECTION_TIMEOUT || ftp.isClosed()) {
+      ftp.close();
+      return false;
+    }
+    return true;
+  } );
+}
 
 export async function getFTPClient(
   config: Config,
   communication: Communication,
 ): Promise<CreateFtpClientResult> {
   try {
-    let ftp = ftps.find(f => !f.isBusy() && !f.isClosed());
-    if (!ftp) {
-      ftp = new FTP(communication);
-      ftps.push(ftp);
-      await ftp.connect(config);
+    console.log("---------");
+    for (const f of ftpConnections) {
+      console.log(`av ${f.available()} - cl ${f.isClosed()}`);
     }
-    return { type: "Ok", data: ftp };
+    cleanFTPConnections();
+    let freeFtpConnection = ftpConnections.find(f => f.available() && !f.isClosed());
+    if (!freeFtpConnection) {
+      if (ftpConnections.length >= 3) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return await getFTPClient(config, communication);
+      }
+
+      freeFtpConnection = new FTP(communication);
+      ftpConnections.push(freeFtpConnection);
+      await freeFtpConnection.connect(config);
+    }
+
+    freeFtpConnection.borrow();
+    return {type: "Ok", data: freeFtpConnection };
   } catch (err) {
     return { type: "ConnectionError", message: err };
   }

@@ -4,12 +4,7 @@ import chokidar from "chokidar";
 import { Config } from "@shared/types";
 import { ApplicationState } from "./index";
 import {Communication} from "./communication";
-
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import process from "process";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.cwd()

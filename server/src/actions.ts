@@ -9,6 +9,8 @@ export async function listDir(path: string, applicationState: ApplicationState) 
                 return await client.listDir(path);
             } catch (err) {
                 applicationState.communication.logError(`FTP Connection error: ${err}"`);
+            } finally {
+                client.free();
             }
         })
         .with({type: "ConnectionError", message: P.select()}, async (err) => {
@@ -25,6 +27,8 @@ export async function checkDir(path: string, applicationState: ApplicationState)
                 return true;
             } catch (err) {
                 return false;
+            } finally {
+                client.free();
             }
         })
         .with({ type: "ConnectionError", message: P.select() }, async (err) =>

@@ -216,14 +216,14 @@
                                   variant="text"
                                   :icon="mdiContentCopy"
                                   color="primary"
-                                  @click="copySyncMap($event, index)"
+                                  @click.stop="copySyncMap($event, index)"
                                 />
                                 <v-btn
                                   size="x-large"
                                   variant="text"
                                   :icon="mdiDelete"
                                   color="error"
-                                  @click="deleteSyncMap($event, index)"
+                                  @click.stop="deleteSyncMap($event, index)"
                                 />
                               </span>
                             </div>
@@ -435,14 +435,10 @@ function addSyncMap() {
 }
 
 function deleteSyncMap(event: MouseEvent, index: number) {
-  event.preventDefault();
-
   config.value.syncMaps.splice(index, 1);
 }
 
 function copySyncMap(event: MouseEvent, index: number) {
-  event.preventDefault();
-
   config.value.syncMaps.splice(index + 1, 0, {
     ...config.value.syncMaps[index],
   });

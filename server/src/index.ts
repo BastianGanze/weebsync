@@ -7,11 +7,6 @@ import {Communication} from "./communication";
 import {join} from "path";
 import {init} from "./init";
 
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 export interface ApplicationState {
   config: Config;
   configUpdateInProgress: boolean;

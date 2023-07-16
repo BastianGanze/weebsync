@@ -15,16 +15,16 @@
         @click="onOpenModal()"
       >
         <v-icon
-          v-if="exists && !loading"
+          v-if="exists && !isLoading"
           :icon="mdiCloudCheckVariant"
           title="Directory exists"
         />
         <v-icon
-          v-if="!exists && !loading"
+          v-if="!exists && !isLoading"
           :icon="mdiCloudOff"
           title="Directory does not exist"
         /><v-progress-circular
-          v-if="loading"
+          v-if="isLoading"
           indeterminate
           width="2"
           size="10"
@@ -43,11 +43,11 @@
         <v-toolbar-items>
           <v-btn
             color="secondary"
-            :disabled="loading"
+            :disabled="isLoading"
             @click="save()"
           >
             <v-progress-circular
-              v-if="loading"
+              v-if="isLoading"
               indeterminate
               width="2"
               size="14"
@@ -59,7 +59,7 @@
         <v-list v-model="selectedItem">
           <v-list-item
             v-if="!isRoot(current.path)"
-            :disabled="loading"
+            :disabled="isLoading"
             @click="pathUp()"
           >
             ..
@@ -67,7 +67,7 @@
           <v-list-item
             v-for="child in current.children"
             :key="child.id"
-            :disabled="loading || !child.isDir"
+            :disabled="isLoading || !child.isDir"
             @click="fetchDirectory(child.path)"
           >
             {{ child.name }}
@@ -81,7 +81,7 @@
 <script lang="ts" setup>
 import {PerfectScrollbar} from "vue3-perfect-scrollbar";
 import {mdiClose, mdiCloudCheckVariant, mdiCloudOff} from "@mdi/js";
-import {ref, watch} from "vue";
+import {computed, ref, watch} from "vue";
 import {useCommunication} from "./communication";
 import {SyncMap} from "@shared/types";
 
@@ -94,6 +94,8 @@ interface TreeChild {
 }
 
 const emit = defineEmits(['save'])
+
+const isLoading = computed(() => loading.value || exists.value === null);
 
 function save() {
   if (loading.value) {
@@ -117,7 +119,7 @@ watch([ftpProps], () => {
 }, {immediate: true})
 
 const dialog = ref(false);
-const exists = ref(false);
+const exists = ref(null);
 const loading = ref(false);
 const selectedItem = ref(-1);
 

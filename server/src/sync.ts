@@ -63,7 +63,7 @@ export async function syncFiles(
   updateSyncStatus(applicationState, false);
   applicationState.communication.logInfo(`Sync done!`);
 
-  ftpClient.close();
+  ftpClient.free();
 }
 
 function updateSyncStatus(
@@ -218,14 +218,17 @@ async function sync(
       }
 
       currentWriteStream = fs.createWriteStream(localFile);
+      console.log("getFile");
       await ftpClient.getFile(
         latestRemoteMatch.path,
         currentWriteStream,
         latestRemoteMatch.listingElement.size,
       );
+      console.log("getFile done");
     }
     return { type: "Success" };
   } catch (e) {
+    console.log("erorriert");
     if (e instanceof Error) {
       if ("code" in e) {
         const error = e as { code: number };

@@ -6,10 +6,11 @@
   "main": "./build/main.js",
   "scripts": {
     "build": "ts-node --skipProject build.ts && rollup -c --bundleConfigAsCjs && rm ../build/index.mjs",
-    "dev": "vite dev"
+    "dev": "esrun --watch=src/*.ts src/index.ts"
   },
   "author": "Bastian Ganze",
   "devDependencies": {
+    "@digitak/esrun": "^3.2.24",
     "@types/node": "^20.4.1",
     "esbuild": "^0.18.11",
     "rollup-plugin-esbuild": "^5.0.0",
