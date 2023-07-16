@@ -1,6 +1,6 @@
 {
   "name": "weebsync",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
   "private": true,

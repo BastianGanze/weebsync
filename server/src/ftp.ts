@@ -130,10 +130,6 @@ export async function getFTPClient(
   communication: Communication,
 ): Promise<CreateFtpClientResult> {
   try {
-    console.log("---------");
-    for (const f of ftpConnections) {
-      console.log(`av ${f.available()} - cl ${f.isClosed()}`);
-    }
     cleanFTPConnections();
     let freeFtpConnection = ftpConnections.find(f => f.available() && !f.isClosed());
     if (!freeFtpConnection) {

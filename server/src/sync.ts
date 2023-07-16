@@ -189,6 +189,12 @@ async function sync(
       communication,
     );
 
+    if (syncMap.rename && dir.length > 0 && Object.keys(fileMatchesMap).length === 0) {
+      communication.logWarning(
+          `Sync config "${syncMap.id}" has a rename configured but it matches no files.`,
+      );
+    }
+
     for (const [localFile, fileMatches] of Object.entries(fileMatchesMap)) {
       const latestRemoteMatch = getLatestMatchingFile(fileMatches);
 
@@ -218,17 +224,14 @@ async function sync(
       }
 
       currentWriteStream = fs.createWriteStream(localFile);
-      console.log("getFile");
       await ftpClient.getFile(
         latestRemoteMatch.path,
         currentWriteStream,
         latestRemoteMatch.listingElement.size,
       );
-      console.log("getFile done");
     }
     return { type: "Success" };
   } catch (e) {
-    console.log("erorriert");
     if (e instanceof Error) {
       if ("code" in e) {
         const error = e as { code: number };
