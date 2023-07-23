@@ -30,8 +30,6 @@ async function register(api) {
         writeFileSync(`${plexAniSyncMasterPath}/settings.ini`, getPlexAniSyncTemplate({}));
         api.communication.logInfo(`Done. Plex anilist sync good to go!`);
     }
-
-    syncAniList(api);
     api.communication.logInfo("Plex anilist sync setup complete.");
 }
 
