@@ -1,5 +1,5 @@
 import {existsSync, rmSync, writeFileSync} from "fs";
-import { spawnSync} from "child_process";
+import { spawnSync, spawn } from "child_process";
 
 let intervalHandler;
 async function register(api) {
