@@ -36,12 +36,13 @@ async function register(api) {
 }
  function syncAniList(api) {
      const plexAniSyncMasterPath = `${api.thisPluginDirectory}/PlexAniSync-master`;
-     api.communication.logError(`Trying to sync to anilist.`);
+     api.communication.logInfo(`Trying to sync to anilist.`);
     try {
         const result = spawnSync('python3', ["PlexAniSync.py"], {cwd: plexAniSyncMasterPath});
-        if (result.code !== 0) {
+        if (result.status !== 0) {
             api.communication.logError(`Error while syncing to anilist. For more information see "${api.thisPluginDirectory}/error.log"`);
             writeFileSync(`${api.thisPluginDirectory}/error.log`, result.stderr?.toString());
+        } else {
             writeFileSync(`${api.thisPluginDirectory}/info.log`, result.stdout?.toString());
         }
     } catch (e) {
