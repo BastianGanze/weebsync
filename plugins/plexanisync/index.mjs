@@ -43,7 +43,7 @@ async function register(api) {
             api.communication.logError(`Error while syncing to anilist. For more information see "${api.thisPluginDirectory}/error.log"`);
             writeFileSync(`${api.thisPluginDirectory}/error.log`, result.stderr?.toString());
         } else {
-            writeFileSync(`${api.thisPluginDirectory}/info.log`, result.stdout?.toString());
+            writeFileSync(`${api.thisPluginDirectory}/info.log`, result.stderr?.toString());
         }
     } catch (e) {
         api.communication.logError(`Could not sync to anilist: ${e.message}`);
