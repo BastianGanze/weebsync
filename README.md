@@ -16,6 +16,11 @@ The application will attempt to create the directory and config file upon startu
 Set this do an absolute value e.g. `/home/user/weebsyncconfig` or `c:/users/user/AppData/local/weebsync`.
 If you don't set this, a config dir will be created automatically at the executables' directory.
 
+#### WEEB_SYNC_PLUGIN_DIR
+The application will attempt to load plugins from this directory.
+Set this do an absolute value e.g. `/home/user/weebsyncconfig` or `c:/users/user/AppData/local/weebsync`.
+If you don't set this, a plugin folder may be created next to the executable.
+
 #### WEEB_SYNC_SERVER_HTTP_PORT
 default value is `42380`
 Determines on what port the application will run.
@@ -71,4 +76,10 @@ Make sure the volume points to a correct, absolute and existing path on your fil
 ```
 docker build -t weebsync .
 docker run -d --name weebsync -p 42380:42380 -v /home/user/wsconfig/:/config weebsync
+```
+
+# Develop
+```
+docker build -t weebsync-dev -f Dockerfile-dev .
+docker run -d --name weebsync-dev -p 42380:42380 -v /path/to/repository/:/app weebsync-dev
 ```

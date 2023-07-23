@@ -8,28 +8,11 @@
         background-color="transparent"
         dark
       >
-        <v-tab
-          class="app-tabs__tab-item"
-          :value="'console'"
-        >
-          Console
-        </v-tab>
-        <v-tab
-          class="app-tabs__tab-item"
-          :value="'config'"
-        >
-          Config
-        </v-tab>
-        <v-tab
-          class="app-tabs__tab-item"
-          :value="'sync'"
-        >
-          Sync
-        </v-tab>
-        <v-tab
-          class="app-tabs__tab-item"
-          :value="'info'"
-        >
+        <v-tab class="app-tabs__tab-item" :value="'console'"> Console </v-tab>
+        <v-tab class="app-tabs__tab-item" :value="'config'"> Config </v-tab>
+        <v-tab class="app-tabs__tab-item" :value="'sync'"> Sync </v-tab>
+        <v-tab class="app-tabs__tab-item" :value="'plugins'"> Plugins </v-tab>
+        <v-tab class="app-tabs__tab-item" :value="'info'">
           <update-checker /> Info
         </v-tab>
       </v-tabs>
@@ -63,12 +46,7 @@
                     justify-md="start"
                     justify-lg="start"
                   >
-                    <v-col
-                      cols="12"
-                      sm="4"
-                      md="3"
-                      lg="2"
-                    >
+                    <v-col cols="12" sm="4" md="3" lg="2">
                       <v-switch
                         v-model="config.syncOnStart"
                         class="config__switch"
@@ -77,12 +55,7 @@
                         label="Sync on start"
                       />
                     </v-col>
-                    <v-col
-                      cols="12"
-                      sm="4"
-                      md="3"
-                      lg="2"
-                    >
+                    <v-col cols="12" sm="4" md="3" lg="2">
                       <v-switch
                         v-model="config.debugFileNames"
                         class="config__switch"
@@ -92,11 +65,7 @@
                     </v-col>
                   </v-row>
                   <v-row justify="start">
-                    <v-col
-                      cols="12"
-                      sm="6"
-                      md="3"
-                    >
+                    <v-col cols="12" sm="6" md="3">
                       <v-text-field
                         v-model="config.autoSyncIntervalInMinutes"
                         dense
@@ -109,11 +78,7 @@
                     </v-col>
                   </v-row>
                   <v-row justify="start">
-                    <v-col
-                      cols="12"
-                      sm="6"
-                      md="3"
-                    >
+                    <v-col cols="12" sm="6" md="3">
                       <v-text-field
                         v-model="config.server.host"
                         dense
@@ -122,11 +87,7 @@
                         class="config__text-field"
                       />
                     </v-col>
-                    <v-col
-                      cols="12"
-                      sm="6"
-                      md="3"
-                    >
+                    <v-col cols="12" sm="6" md="3">
                       <v-text-field
                         v-model="config.server.port"
                         dense
@@ -136,11 +97,7 @@
                         class="config__text-field"
                       />
                     </v-col>
-                    <v-col
-                      cols="12"
-                      sm="6"
-                      md="3"
-                    >
+                    <v-col cols="12" sm="6" md="3">
                       <v-text-field
                         v-model="config.server.user"
                         dense
@@ -149,11 +106,7 @@
                         class="config__text-field"
                       />
                     </v-col>
-                    <v-col
-                      cols="12"
-                      sm="6"
-                      md="3"
-                    >
+                    <v-col cols="12" sm="6" md="3">
                       <v-text-field
                         v-model="config.server.password"
                         dense
@@ -177,10 +130,7 @@
               Save
             </v-btn>
           </v-window-item>
-          <v-window-item
-            class="app-tabs-content__tab-content"
-            :value="'sync'"
-          >
+          <v-window-item class="app-tabs-content__tab-content" :value="'sync'">
             <div class="config">
               <template v-if="configLoaded">
                 <div class="sync__add-button">
@@ -231,10 +181,7 @@
                           <v-expansion-panel-text>
                             <v-container :fluid="true">
                               <v-row justify="start">
-                                <v-col
-                                  cols="12"
-                                  sm="12"
-                                >
+                                <v-col cols="12" sm="12">
                                   <v-text-field
                                     v-model="syncItem.id"
                                     dense
@@ -246,10 +193,7 @@
                                 </v-col>
                               </v-row>
                               <v-row justify="start">
-                                <v-col
-                                  cols="12"
-                                  sm="12"
-                                >
+                                <v-col cols="12" sm="12">
                                   <div class="config__actionable-field">
                                     <v-text-field
                                       :model-value="syncItem.originFolder"
@@ -258,7 +202,9 @@
                                       type="text"
                                       label="Origin folder"
                                       class="config__text-field"
-                                      @update:model-value="pathPicked(syncItem, $event)"
+                                      @update:model-value="
+                                        pathPicked(syncItem, $event)
+                                      "
                                     />
                                     <ftp-viewer
                                       :item="syncItem"
@@ -268,10 +214,7 @@
                                 </v-col>
                               </v-row>
                               <v-row justify="start">
-                                <v-col
-                                  cols="12"
-                                  sm="12"
-                                >
+                                <v-col cols="12" sm="12">
                                   <v-text-field
                                     v-model="syncItem.destinationFolder"
                                     dense
@@ -283,10 +226,7 @@
                                 </v-col>
                               </v-row>
                               <v-row justify="start">
-                                <v-col
-                                  cols="12"
-                                  sm="12"
-                                >
+                                <v-col cols="12" sm="12">
                                   <v-switch
                                     v-model="syncItem.rename"
                                     class="v-input--reverse config__switch"
@@ -296,14 +236,8 @@
                                   />
                                 </v-col>
                               </v-row>
-                              <v-row
-                                v-if="syncItem.rename"
-                                justify="start"
-                              >
-                                <v-col
-                                  cols="12"
-                                  sm="12"
-                                >
+                              <v-row v-if="syncItem.rename" justify="start">
+                                <v-col cols="12" sm="12">
                                   <v-text-field
                                     v-model="syncItem.fileRegex"
                                     dense
@@ -314,14 +248,8 @@
                                   />
                                 </v-col>
                               </v-row>
-                              <v-row
-                                v-if="syncItem.rename"
-                                justify="start"
-                              >
-                                <v-col
-                                  cols="12"
-                                  sm="12"
-                                >
+                              <v-row v-if="syncItem.rename" justify="start">
+                                <v-col cols="12" sm="12">
                                   <v-text-field
                                     v-model="syncItem.fileRenameTemplate"
                                     dense
@@ -361,19 +289,22 @@
           </v-window-item>
           <v-window-item
             class="app-tabs-content__tab-content"
-            :value="'info'"
+            :value="'plugins'"
           >
-            <v-list
-              class="caption"
-              dense
-            >
+            <plugins-view />
+          </v-window-item>
+          <v-window-item class="app-tabs-content__tab-content" :value="'info'">
+            <v-list class="caption" dense>
               <v-list-item>Version {{ currentVersion }}</v-list-item>
               <v-list-item>
-                <span>For updates and general information look
+                <span
+                  >For updates and general information look
                   <a
                     href="https://github.com/BastianGanze/weebsync/releases"
                     target="_blank"
-                  >here</a>.</span>
+                    >here</a
+                  >.</span
+                >
               </v-list-item>
               <v-list-item>
                 <update-checker :show-link="true" />
@@ -397,20 +328,22 @@
 <script lang="ts" setup>
 import UpdateChecker from "./UpdateChecker.vue";
 import FtpViewer from "./FtpViewer.vue";
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 
 import { useUiStore } from "./store";
 import { SyncMap } from "@shared/types";
-import { ref} from "vue";
+import { ref } from "vue";
 import { useCommunication } from "./communication";
 import dayjs from "dayjs";
-import {storeToRefs} from "pinia";
-import {mdiContentCopy, mdiDelete, mdiPlusCircleOutline} from "@mdi/js";
+import { storeToRefs } from "pinia";
+import { mdiContentCopy, mdiDelete, mdiPlusCircleOutline } from "@mdi/js";
+import PluginsView from "./PluginsView.vue";
 
-const { logs, configLoaded, config, isSyncing, currentVersion, bottomBar } = storeToRefs(useUiStore());
+const { logs, configLoaded, config, isSyncing, currentVersion, bottomBar } =
+  storeToRefs(useUiStore());
 const communication = useCommunication();
 
-const tab = ref('tab-1');
+const tab = ref("tab-1");
 
 const syncIntervalRules: Array<(value: number) => string | boolean> = [
   (v) => {
@@ -420,7 +353,7 @@ const syncIntervalRules: Array<(value: number) => string | boolean> = [
 ];
 
 function formatDate(date: string): string {
-  return dayjs(new Date(date)).format('HH:mm:ss');
+  return dayjs(new Date(date)).format("HH:mm:ss");
 }
 
 function addSyncMap() {
@@ -444,7 +377,6 @@ function copySyncMap(event: MouseEvent, index: number) {
   });
 }
 
-
 function sendConfig() {
   communication.config(config.value);
 }
@@ -456,7 +388,6 @@ function sync() {
 function pathPicked(syncItem: SyncMap, update: string) {
   syncItem.originFolder = update;
 }
-
 </script>
 
 <style scoped lang="scss">
@@ -470,7 +401,6 @@ function pathPicked(syncItem: SyncMap, update: string) {
   flex-direction: column;
   height: 100%;
 }
-
 
 .log-wrap {
   height: 100%;

@@ -5,12 +5,13 @@
   "license": "MIT",
   "main": "./build/main.js",
   "scripts": {
-    "build": "ts-node --skipProject build.ts && rollup -c --bundleConfigAsCjs && rm ../build/index.mjs",
-    "dev": "esrun --watch=src/*.ts src/index.ts"
+    "build": "tsc && ts-node --skipProject build.ts && rollup -c --bundleConfigAsCjs && rm ../build/index.mjs",
+    "dev": "tsc && esrun --watch=src/*.ts src/index.ts"
   },
   "author": "Bastian Ganze",
   "devDependencies": {
     "@digitak/esrun": "^3.2.24",
+    "@types/extract-zip": "^2.0.1",
     "@types/node": "^20.4.1",
     "esbuild": "^0.18.11",
     "rollup-plugin-esbuild": "^5.0.0",
@@ -18,7 +19,9 @@
     "typescript": "5.1.6"
   },
   "dependencies": {
+    "axios": "^1.4.0",
     "basic-ftp": "^5.0.3",
+    "extract-zip": "^2.0.1",
     "fastify": "^4.19.2",
     "fastify-socket.io": "^4.0.0",
     "handlebars": "^4.7.7",

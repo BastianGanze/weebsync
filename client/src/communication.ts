@@ -1,12 +1,19 @@
 import { io, Socket } from "socket.io-client";
-import {ClientToServerEvents, Config, FileInfo, Log, ServerToClientEvents} from "@shared/types";
+import {
+  ClientToServerEvents,
+  Config,
+  FileInfo,
+  Log,
+  ServerToClientEvents,
+  WeebsyncPluginBaseInfo,
+} from "@shared/types";
 
 export class Communication {
   public socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 
   constructor() {
     // eslint-disable-next-line no-undef
-    this.socket = io(__HOST__, {transports: ["websocket"]});
+    this.socket = io(__HOST__, { transports: ["websocket"] });
   }
 
   getVersion(cb: (version: string) => void) {
@@ -35,6 +42,17 @@ export class Communication {
 
   getConfig(cb: (config: Config) => void) {
     this.socket.emit("getConfig", cb);
+  }
+
+  getPlugins(cb: (plugins: WeebsyncPluginBaseInfo[]) => void) {
+    this.socket.emit("getPlugins", cb);
+  }
+
+  sendPluginConfig(
+    name: string,
+    pluginConfig: WeebsyncPluginBaseInfo["config"],
+  ) {
+    this.socket.emit("sendPluginConfig", name, pluginConfig);
   }
 
   getSyncSatus(cb: (syncStatus: boolean) => void) {

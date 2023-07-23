@@ -1,17 +1,19 @@
-import * as esbuild from 'esbuild'
+import * as esbuild from "esbuild";
 // @ts-ignore
-import {version} from '../package.json';
+import { version } from "../package.json";
 
-esbuild.build({
-    entryPoints: ['src/index.ts'],
+esbuild
+  .build({
+    entryPoints: ["src/index.ts"],
     bundle: true,
     target: "esnext",
     platform: "node",
-    format: 'esm',
-    outfile: '../build/index.mjs',
+    format: "esm",
+    outfile: "../build/index.mjs",
     define: {
-        "process.env.__APP_VERSION__": JSON.stringify(`v${version}`),
-    }
-}).then(() => {
+      "process.env.__APP_VERSION__": JSON.stringify(`v${version}`),
+    },
+  })
+  .then(() => {
     console.log("build done");
-})
+  });

@@ -16,7 +16,7 @@ export type SyncResult =
   | { type: "Error"; error: Error };
 
 export async function syncFiles(
-  applicationState: ApplicationState
+  applicationState: ApplicationState,
 ): Promise<void> {
   if (applicationState.syncInProgress) {
     applicationState.communication.logWarning(
@@ -49,7 +49,7 @@ export async function syncFiles(
       syncMap,
       ftpClient,
       applicationState.config,
-        applicationState.communication,
+      applicationState.communication,
     );
     const abortSync = match(syncResult)
       .with({ type: "Success" }, () => false)
@@ -66,12 +66,9 @@ export async function syncFiles(
   ftpClient.free();
 }
 
-function updateSyncStatus(
-  applicationState: ApplicationState,
-  status: boolean,
-) {
+function updateSyncStatus(applicationState: ApplicationState, status: boolean) {
   applicationState.syncInProgress = status;
-  applicationState.communication.syncStatus(status);
+  applicationState.communication.sendSyncStatus(status);
 }
 
 export function toggleAutoSync(
@@ -91,7 +88,9 @@ export function toggleAutoSync(
       5,
     );
 
-    applicationState.communication.logInfo(`AutoSync enabled! Interval is ${interval} minutes.`);
+    applicationState.communication.logInfo(
+      `AutoSync enabled! Interval is ${interval} minutes.`,
+    );
 
     applicationState.autoSyncIntervalHandler = setInterval(
       () => syncFiles(applicationState),
@@ -189,9 +188,13 @@ async function sync(
       communication,
     );
 
-    if (syncMap.rename && dir.length > 0 && Object.keys(fileMatchesMap).length === 0) {
+    if (
+      syncMap.rename &&
+      dir.length > 0 &&
+      Object.keys(fileMatchesMap).length === 0
+    ) {
       communication.logWarning(
-          `Sync config "${syncMap.id}" has a rename configured but it matches no files.`,
+        `Sync config "${syncMap.id}" has a rename configured but it matches no files.`,
       );
     }
 

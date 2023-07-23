@@ -3,14 +3,15 @@ import { match, P } from "ts-pattern";
 import chokidar from "chokidar";
 import { Config } from "@shared/types";
 import { ApplicationState } from "./index";
-import {Communication} from "./communication";
+import { Communication } from "./communication";
 import process from "process";
 
 const CONFIG_NAME = "weebsync.config.json";
 export const PATH_TO_EXECUTABLE: string = process.cwd()
   ? process.cwd()
   : __dirname;
-export const CONFIG_FILE_DIR = process.env.WEEB_SYNC_CONFIG_DIR ?? `${PATH_TO_EXECUTABLE}/config`;
+export const CONFIG_FILE_DIR =
+  process.env.WEEB_SYNC_CONFIG_DIR ?? `${PATH_TO_EXECUTABLE}/config`;
 export const CONFIG_FILE_PATH = `${CONFIG_FILE_DIR}/${CONFIG_NAME}`;
 
 export function watchConfigChanges(applicationState: ApplicationState): void {
@@ -20,7 +21,9 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
       return;
     }
 
-    applicationState.communication.logInfo(`"${oath}" changed, trying to update configuration.`);
+    applicationState.communication.logInfo(
+      `"${oath}" changed, trying to update configuration.`,
+    );
     applicationState.configUpdateInProgress = true;
     if (applicationState.syncInProgress) {
       applicationState.communication.logInfo(
@@ -33,7 +36,9 @@ export function watchConfigChanges(applicationState: ApplicationState): void {
     if (tmpConfig) {
       applicationState.config = tmpConfig;
       applicationState.communication.logInfo("Config successfully updated.");
-      applicationState.communication.config(JSON.parse(JSON.stringify(tmpConfig)));
+      applicationState.communication.sendConfig(
+        JSON.parse(JSON.stringify(tmpConfig)),
+      );
     } else {
       applicationState.communication.logError(
         "Config was broken, will keep the old config for now.",
@@ -67,7 +72,9 @@ export type GetConfigResult =
   | { type: "WrongConfigError"; message: string }
   | { type: "UnknownError" };
 
-export async function waitForCorrectConfig(communication: Communication): Promise<Config> {
+export async function waitForCorrectConfig(
+  communication: Communication,
+): Promise<Config> {
   communication.logInfo("Loading configuration.");
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
@@ -139,7 +146,7 @@ function getConfig(): GetConfigResult {
           const result = (e as NodeJS.ErrnoException).code;
           if (result === "ENOENT") {
             const config = createDefaultConfig();
-            fs.mkdirSync(CONFIG_FILE_DIR, {recursive: true});
+            fs.mkdirSync(CONFIG_FILE_DIR, { recursive: true });
             fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 4));
             return { type: "Ok", data: config };
           }

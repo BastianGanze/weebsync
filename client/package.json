@@ -36,6 +36,7 @@
     "socket.io-client": "^4.7.1",
     "strongly-typed-events": "^3.0.9",
     "ts-pattern": "^5.0.1",
+    "vue-3-linkify": "^1.1.0",
     "vue3-perfect-scrollbar": "^1.6.1",
     "vuetify": "^3.3.7"
   }

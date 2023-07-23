@@ -33,19 +33,11 @@
     </template>
     <v-card>
       <v-toolbar>
-        <v-btn
-          variant="text"
-          :icon="mdiClose"
-          @click="dialog = false"
-        />
+        <v-btn variant="text" :icon="mdiClose" @click="dialog = false" />
         <v-toolbar-title>{{ current.name }}</v-toolbar-title>
         <v-spacer />
         <v-toolbar-items>
-          <v-btn
-            color="secondary"
-            :disabled="isLoading"
-            @click="save()"
-          >
+          <v-btn color="secondary" :disabled="isLoading" @click="save()">
             <v-progress-circular
               v-if="isLoading"
               indeterminate
@@ -79,11 +71,11 @@
 </template>
 
 <script lang="ts" setup>
-import {PerfectScrollbar} from "vue3-perfect-scrollbar";
-import {mdiClose, mdiCloudCheckVariant, mdiCloudOff} from "@mdi/js";
-import {computed, ref, watch} from "vue";
-import {useCommunication} from "./communication";
-import {SyncMap} from "@shared/types";
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { mdiClose, mdiCloudCheckVariant, mdiCloudOff } from "@mdi/js";
+import { computed, ref, watch } from "vue";
+import { useCommunication } from "./communication";
+import { SyncMap } from "@shared/types";
 
 interface TreeChild {
   id: string;
@@ -93,7 +85,7 @@ interface TreeChild {
   children?: TreeChild[];
 }
 
-const emit = defineEmits(['save'])
+const emit = defineEmits(["save"]);
 
 const isLoading = computed(() => loading.value || exists.value === null);
 
@@ -102,27 +94,30 @@ function save() {
     return;
   }
   dialog.value = false;
-  emit('save', current.value.path);
+  emit("save", current.value.path);
 }
 
 let timeout: number;
-const ftpProps = defineProps<{item: SyncMap}>();
+const ftpProps = defineProps<{ item: SyncMap }>();
 const syncItem = ref(ftpProps.item);
 
-watch([ftpProps], () => {
-  if (timeout) {
-    clearTimeout(timeout);
-  }
-  timeout = setTimeout(() => {
-    checkDirectory(syncItem.value.originFolder);
-  }, 250);
-}, {immediate: true})
+watch(
+  [ftpProps],
+  () => {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => {
+      checkDirectory(syncItem.value.originFolder);
+    }, 250);
+  },
+  { immediate: true },
+);
 
 const dialog = ref(false);
 const exists = ref(null);
 const loading = ref(false);
 const selectedItem = ref(-1);
-
 
 const current = ref<TreeChild>({
   id: "root",
@@ -170,7 +165,7 @@ function checkDirectory(path: string): Promise<void> {
       exists.value = pathExists;
       loading.value = false;
       resolve();
-    })
+    });
   });
 }
 
@@ -199,11 +194,9 @@ function fetchDirectory(itemPath: string) {
         children: r.type === 2 ? [] : undefined,
       }));
       resolve();
-      }
-    );
+    });
   });
 }
-
 </script>
 
 <style scoped lang="scss">

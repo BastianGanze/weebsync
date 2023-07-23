@@ -15,9 +15,7 @@ export class FTP {
   private _client = new Client();
   private _used = false;
   private _lastAction: Date = new Date();
-  constructor(
-    private _communication: Communication,
-  ) {}
+  constructor(private _communication: Communication) {}
 
   borrow() {
     if (this._used) {
@@ -99,12 +97,10 @@ export class FTP {
     try {
       await this._client.downloadTo(localFileStream, hostFilePath);
     } finally {
-      this._communication.updateBottomBar(
-          {
-            fileProgress: "",
-            downloadSpeed: "",
-          },
-      );
+      this._communication.updateBottomBar({
+        fileProgress: "",
+        downloadSpeed: "",
+      });
     }
   }
 }
@@ -113,16 +109,19 @@ let ftpConnections: FTP[] = [];
 const FTP_CONNECTION_TIMEOUT = 1000 * 60;
 setInterval(() => {
   cleanFTPConnections();
-}, FTP_CONNECTION_TIMEOUT)
+}, FTP_CONNECTION_TIMEOUT);
 
 function cleanFTPConnections() {
-  ftpConnections = ftpConnections.filter(ftp => {
-    if ((Date.now() - ftp.getLastActionTime()) > FTP_CONNECTION_TIMEOUT || ftp.isClosed()) {
+  ftpConnections = ftpConnections.filter((ftp) => {
+    if (
+      Date.now() - ftp.getLastActionTime() > FTP_CONNECTION_TIMEOUT ||
+      ftp.isClosed()
+    ) {
       ftp.close();
       return false;
     }
     return true;
-  } );
+  });
 }
 
 export async function getFTPClient(
@@ -131,10 +130,12 @@ export async function getFTPClient(
 ): Promise<CreateFtpClientResult> {
   try {
     cleanFTPConnections();
-    let freeFtpConnection = ftpConnections.find(f => f.available() && !f.isClosed());
+    let freeFtpConnection = ftpConnections.find(
+      (f) => f.available() && !f.isClosed(),
+    );
     if (!freeFtpConnection) {
       if (ftpConnections.length >= 3) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         return await getFTPClient(config, communication);
       }
 
@@ -144,7 +145,7 @@ export async function getFTPClient(
     }
 
     freeFtpConnection.borrow();
-    return {type: "Ok", data: freeFtpConnection };
+    return { type: "Ok", data: freeFtpConnection };
   } catch (err) {
     return { type: "ConnectionError", message: err };
   }
