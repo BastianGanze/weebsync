@@ -34,21 +34,37 @@ async function register(api) {
     syncAniList(api);
     api.communication.logInfo("Plex anilist sync setup complete.");
 }
- function syncAniList(api) {
-     const plexAniSyncMasterPath = `${api.thisPluginDirectory}/PlexAniSync-master`;
-     api.communication.logInfo(`Trying to sync to anilist.`);
-    try {
-        const result = spawnSync('python3', ["PlexAniSync.py"], {cwd: plexAniSyncMasterPath});
-        if (result.status !== 0) {
-            api.communication.logError(`Error while syncing to anilist. For more information see "${api.thisPluginDirectory}/error.log"`);
-            writeFileSync(`${api.thisPluginDirectory}/error.log`, result.stderr?.toString());
+
+function syncAniList(api) {
+    const plexAniSyncMasterPath = `${api.thisPluginDirectory}/PlexAniSync-master`;
+    let logs = "";
+    api.communication.logInfo(`Trying to sync to anilist.`);
+
+    const process = spawn('python3', ["PlexAniSync.py"], { cwd: plexAniSyncMasterPath });
+
+    process.stdout.on('data', (data) => {
+        logs += data?.toString();
+    });
+
+    process.stderr.on('data', (data) => {
+        logs += data?.toString();
+    });
+
+    process.on('error', (error) => {
+        api.communication.logError(`Could not sync to anilist: ${error.message}`);
+    });
+
+    process.on('exit', (code) => {
+        if (code === 0) {
+            api.communication.logInfo(`Anilist sync done.`);
+            writeFileSync(`${api.thisPluginDirectory}/error.log`, logs);
         } else {
-            writeFileSync(`${api.thisPluginDirectory}/info.log`, result.stderr?.toString());
+            api.communication.logError(`Error while syncing to anilist. For more information see "${api.thisPluginDirectory}/error.log"`);
+            writeFileSync(`${api.thisPluginDirectory}/error.log`, logs);
         }
-    } catch (e) {
-        api.communication.logError(`Could not sync to anilist: ${e.message}`);
-    }
+    });
 }
+
 
 async function onConfigUpdate(api, config) {
     writeFileSync(`${api.thisPluginDirectory}/PlexAniSync-master/settings.ini`, getPlexAniSyncTemplate(config));
