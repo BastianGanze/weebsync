@@ -55,7 +55,7 @@ function syncAniList(api) {
     process.on('exit', (code) => {
         if (code === 0) {
             api.communication.logInfo(`Anilist sync done.`);
-            writeFileSync(`${api.thisPluginDirectory}/error.log`, logs);
+            writeFileSync(`${api.thisPluginDirectory}/info.log`, logs);
         } else {
             api.communication.logError(`Error while syncing to anilist. For more information see "${api.thisPluginDirectory}/error.log"`);
             writeFileSync(`${api.thisPluginDirectory}/error.log`, logs);
