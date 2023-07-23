@@ -22,11 +22,15 @@ export function hookupCommunicationEvents(applicationState: ApplicationState) {
       const plugin = applicationState.plugins.find((p) => p.name === name);
       if (plugin) {
         try {
+          applicationState.communication.logInfo(
+            `Saving config for plugin ${name}.`,
+          );
           await savePluginConfiguration(plugin.name, config);
           if (plugin.onConfigUpdate) {
             await plugin.onConfigUpdate(pluginApis[name], config);
           }
           plugin.config = config;
+          applicationState.communication.logInfo(`Config for ${name} saved!`);
         } catch (e) {
           applicationState.communication.logError(
             `Error while onConfigUpdate of "${name}": ${e.message}`,

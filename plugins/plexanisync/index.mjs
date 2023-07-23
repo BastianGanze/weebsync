@@ -36,11 +36,13 @@ async function register(api) {
 }
  function syncAniList(api) {
      const plexAniSyncMasterPath = `${api.thisPluginDirectory}/PlexAniSync-master`;
+     api.communication.logError(`Trying to sync to anilist.`);
     try {
         const result = spawnSync('python3', ["PlexAniSync.py"], {cwd: plexAniSyncMasterPath});
-        if (result.stderr) {
+        if (result.code !== 0) {
             api.communication.logError(`Error while syncing to anilist. For more information see "${api.thisPluginDirectory}/error.log"`);
-            writeFileSync(`${api.thisPluginDirectory}/error.log`, result.stderr.toString());
+            writeFileSync(`${api.thisPluginDirectory}/error.log`, result.stderr?.toString());
+            writeFileSync(`${api.thisPluginDirectory}/info.log`, result.stdout?.toString());
         }
     } catch (e) {
         api.communication.logError(`Could not sync to anilist: ${e.message}`);
@@ -52,7 +54,7 @@ async function onConfigUpdate(api, config) {
     if (intervalHandler) {
         clearInterval(intervalHandler);
     }
-    console.log(config.sync_interval_in_minutes);
+    syncAniList(api);
     intervalHandler = setInterval(() => syncAniList(api), 1000*60*config.sync_interval_in_minutes);
 }
 
@@ -91,7 +93,7 @@ export default {
     onConfigUpdate,
     pluginConfigurationDefinition: [
         {label: 'Plugin settings', type: 'label'},
-        {key: 'sync_interval_in_minutes', type: 'number', default: 5},
+        {key: 'sync_interval_in_minutes', type: 'number', default: 15},
         {label: 'Plex settings', type: 'label'},
         {key: 'anime_section', type: 'text', default: 'Anime|Season'},
         {key: 'authentication_method_direct', type: 'boolean', default: true},
