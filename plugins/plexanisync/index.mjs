@@ -22,7 +22,7 @@ async function register(api) {
         await api.downloadPluginResourceZipAndUnzip(api.thisPluginDirectory, "https://github.com/RickDB/PlexAniSync/archive/master.zip");
         api.communication.logInfo(`Download complete.`);
         api.communication.logInfo(`Installing dependencies...`);
-        const result = spawnSync('pip', ['install', '-r', 'requirements.txt'], {cwd: plexAniSyncMasterPath});
+        const result = spawnSync('pip', ['--no-warn-script-location', 'install', '-r', 'requirements.txt'], {cwd: plexAniSyncMasterPath});
         if (result.stderr && !result.stderr.toString().includes("Running pip as the 'root' user")) {
             rmSync(plexAniSyncMasterPath, {recursive: true, force: true});
             throw new Error(`Error while installing dependencies for anilist sync ${result.stderr.toString()}`)
