@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/node": "^20.4.1",
     "eslint-plugin-vue": "^9.15.1",
+    "postcss": "^8.2.15",
     "sass": "1.63.6",
     "sass-loader": "^13.3.2",
     "typescript": "5.1.6",
@@ -20,9 +21,9 @@
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-vuetify": "^1.0.2",
     "vue": "^3.3.4",
-    "vue-class-component": "^7.2.6",
     "vue-eslint-parser": "^9.3.1",
-    "vue-property-decorator": "^9.1.2"
+    "vue-property-decorator": "^9.1.2",
+    "webpack": "^5.0.0"
   },
   "dependencies": {
     "@fastify/static": "^6.10.2",
