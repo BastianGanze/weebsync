@@ -2,14 +2,20 @@ import {existsSync, rmSync, writeFileSync} from "fs";
 import { spawnSync, spawn } from "child_process";
 
 let intervalHandler;
+let pythonExecutable;
 async function register(api) {
     api.communication.logInfo("Setting up plex anilist sync");
     const pythonTest = spawnSync(`python3`);
     if (pythonTest.error) {
-        api.communication.logError(`Could not register plex anilist sync, python3 does not seem to be installed or does not work correctly. ${pythonTest.error?.toString()}`);
-        return;
+        const pythonTest = spawnSync(`python`);
+        if (pythonTest.error) {
+            api.communication.logError(`Could not register plex anilist sync, python3 does not seem to be installed or does not work correctly. ${pythonTest.error?.toString()}`);
+            return;
+        }
+        pythonExecutable = 'python';
+    } else {
+        pythonExecutable = 'python3';
     }
-
     const pipTest = spawnSync(`pip`);
     if (pipTest.error) {
         api.communication.logError(`Could not register plex anilist sync, pip does not seem to be installed or does not work correctly. ${pipTest.error?.toString()}`);
@@ -38,7 +44,7 @@ function syncAniList(api) {
     let logs = "";
     api.communication.logInfo(`Trying to sync to anilist.`);
 
-    const process = spawn('python3', ["PlexAniSync.py"], { cwd: plexAniSyncMasterPath });
+    const process = spawn(pythonExecutable, ["PlexAniSync.py"], { cwd: plexAniSyncMasterPath });
 
     process.stdout.on('data', (data) => {
         logs += data?.toString();
