@@ -8,18 +8,18 @@ let intervalHandler;
 let pythonExecutable;
 async function register(api) {
   api.communication.logInfo("Setting up plex anilist sync");
-  const pythonTest = spawnSync(`python3`);
+  const pythonTest = spawnSync(`python`);
   if (pythonTest.error) {
-    const pythonTest = spawnSync(`python`);
+    const pythonTest = spawnSync(`python3`);
     if (pythonTest.error) {
       api.communication.logError(
         `Could not register plex anilist sync, python3 does not seem to be installed or does not work correctly. ${pythonTest.error?.toString()}`,
       );
       return;
     }
-    pythonExecutable = "python";
-  } else {
     pythonExecutable = "python3";
+  } else {
+    pythonExecutable = "python";
   }
 
   const pipTest = child_process.spawnSync(`pip`);
