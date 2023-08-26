@@ -73,8 +73,8 @@ A function to add or subtract from a number you captured in your regex group. Th
 
 # Plugins
 Create a `plugins` folder in the same folder you are running the application or adjust WEEB_SYNC_PLUGIN_DIR to store them wherever you want.
-Each folder in the `plugins` folder is one plugin. The name of that folder doesn't matter but a `index.mjs` file needs to exist inside the folder.
-To see how to write plugins, take a look at `plugins/plexanisync/index.mjs`.
+Each folder in the `plugins` folder is one plugin. The name of that folder doesn't matter but a `index.js` file needs to exist inside the folder.
+To see how to write plugins, take a look at `plugins/plexanisync/index.js`.
 
 # Run as Docker container
 Make sure the volume points to a correct, absolute and existing path on your filesystem.
