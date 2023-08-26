@@ -5,7 +5,7 @@
   "license": "MIT",
   "main": "./build/main.js",
   "scripts": {
-    "build": "tsc && ts-node --skipProject build.ts && rollup -c --bundleConfigAsCjs && rm ../build/index.mjs",
+    "build": "tsc && ts-node --skipProject build.ts && rollup -c && rm ../build/index.mjs",
     "dev": "tsc && esrun --watch=src/*.ts src/index.ts"
   },
   "author": "Bastian Ganze",

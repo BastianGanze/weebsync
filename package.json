@@ -1,6 +1,6 @@
 {
   "name": "weebsync",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "A small tool to automatically sync files from an ftp server.",
   "license": "MIT",
   "private": true,
@@ -11,9 +11,9 @@
     ],
     "outputPath": "dist",
     "targets": [
-      "latest-linuxstatic",
-      "latest-win-x64",
-      "latest-mac-x64"
+      "node16-linuxstatic",
+      "node16-win-x64",
+      "node16-mac-x64"
     ]
   },
   "scripts": {
