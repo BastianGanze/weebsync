@@ -8,9 +8,15 @@ import { Communication } from "./communication";
 import { WeebsyncPluginBaseInfo } from "@shared/types";
 import { CONFIG_FILE_DIR } from "./config";
 
+export const PATH_TO_EXECUTABLE: string = process.cwd()
+  ? process.cwd()
+  : __dirname;
+
 export const pluginApis: { [name: string]: WeebsyncApi } = {};
 export async function initPluginSystem(applicationState: ApplicationState) {
-  const pluginDir = process.env.WEEB_SYNC_PLUGIN_DIR ?? `${__dirname}/plugins`;
+  const pluginDir =
+    process.env.WEEB_SYNC_PLUGIN_DIR ?? `${PATH_TO_EXECUTABLE}/plugins`;
+  applicationState.communication.logDebug(pluginDir);
 
   try {
     const pluginFolders = readdirSync(pluginDir);
