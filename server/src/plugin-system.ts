@@ -125,11 +125,24 @@ async function loadPlugin(
 ) {
   try {
     const thisPluginDirectory = `${pluginDir}/${pluginFolder}`;
-    const plugin = (
-      (await import(`${thisPluginDirectory}/index.mjs`)) as {
-        default: WeebsyncPlugin;
-      }
-    ).default;
+    let plugin: WeebsyncPlugin;
+    try {
+      plugin = (
+        (await import(`${thisPluginDirectory}/index.mjs`)) as {
+          default: WeebsyncPlugin;
+        }
+      ).default;
+    } catch (e) {
+      applicationState.communication.logWarning(
+        "Could not load plugin as .mjs, trying .js now...",
+      );
+      plugin = (
+        (await import(`${thisPluginDirectory}/index.js`)) as {
+          default: WeebsyncPlugin;
+        }
+      ).default;
+    }
+
     pluginApis[plugin.name] = {
       applicationState,
       communication: applicationState.communication,
