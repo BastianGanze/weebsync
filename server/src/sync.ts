@@ -7,6 +7,7 @@ import { Communication } from "./communication";
 import { FileInfo } from "basic-ftp";
 import { ApplicationState } from "./index";
 import { Config, SyncMap } from "@shared/types";
+import { pluginApis } from "./plugin-system";
 
 let currentWriteStream: fs.WriteStream | null = null;
 
@@ -51,6 +52,13 @@ export async function syncFiles(
       applicationState.config,
       applicationState.communication,
     );
+    if (syncResult.type === "Success") {
+      for (const plugin of applicationState.plugins) {
+        if (plugin.onSyncSuccess) {
+          await plugin.onSyncSuccess(pluginApis[plugin.name], plugin.config);
+        }
+      }
+    }
     const abortSync = match(syncResult)
       .with({ type: "Success" }, () => false)
       .with({ type: "Aborted" }, () => true)

@@ -3,10 +3,11 @@ import { readdirSync, readFileSync, writeFileSync } from "fs";
 import { ApplicationState } from "./index";
 import { createWriteStream, rmSync } from "fs";
 import extract from "extract-zip";
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import { Communication } from "./communication";
 import { WeebsyncPluginBaseInfo } from "@shared/types";
 import { CONFIG_FILE_DIR } from "./config";
+import { CreateAxiosDefaults } from "axios";
 
 export const PATH_TO_EXECUTABLE: string = process.cwd()
   ? process.cwd()
@@ -46,6 +47,10 @@ export async function initPluginSystem(applicationState: ApplicationState) {
 
 export interface WeebsyncPlugin extends WeebsyncPluginBaseInfo {
   register: (api: WeebsyncApi) => Promise<void>;
+  onSyncSuccess: (
+    api: WeebsyncApi,
+    config: WeebsyncPluginBaseInfo["config"],
+  ) => Promise<void>;
   onConfigUpdate?: (
     api: WeebsyncApi,
     config: WeebsyncPluginBaseInfo["config"],
@@ -56,6 +61,7 @@ interface WeebsyncApi {
   applicationState: ApplicationState;
   communication: Communication;
   thisPluginDirectory: string;
+  getAxiosInstance: (config?: CreateAxiosDefaults) => Promise<AxiosInstance>;
   downloadPluginResourceZipAndUnzip: (
     directoryPath: string,
     url: string,
@@ -81,6 +87,10 @@ async function downloadPluginResourceZipAndUnzip(
 
   await extract(tmpZipPath, { dir: `${directoryPath}` });
   rmSync(tmpZipPath);
+}
+
+async function getAxiosInstance(config?: CreateAxiosDefaults) {
+  return Promise.resolve(axios.create(config ? config : {}));
 }
 
 async function loadOrCreatePluginConfiguration(
@@ -146,6 +156,7 @@ async function loadPlugin(
     pluginApis[plugin.name] = {
       applicationState,
       communication: applicationState.communication,
+      getAxiosInstance,
       downloadPluginResourceZipAndUnzip,
       thisPluginDirectory,
     };
