@@ -1,3 +1,4 @@
+let initialSyncHappened = false;
 async function register(api) {
   api.communication.logInfo("Plex media refresh registered.");
 }
@@ -12,8 +13,12 @@ async function refresh(api, config) {
 }
 
 async function onConfigUpdate(api, config) {
-  if (config["run_on_start"]) {
+  if (config["run_on_start"] && !initialSyncHappened) {
+    api.communication.logInfo("Trying first plex media refresh on startup.");
+    console.log(api);
     await refresh(api, config);
+    initialSyncHappened = true;
+    api.communication.logInfo("Plex media refresh success!");
   }
 }
 
