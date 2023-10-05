@@ -1,5 +1,6 @@
 "use strict";
 
+let hasRefreshed = false;
 async function register(api) {
   api.communication.logInfo("Plex media refresh registered.");
 }
@@ -11,7 +12,8 @@ async function onSyncSuccess(api, config) {
 async function refresh(api, config) {
   try {
     const axiosInstance = await api.getAxiosInstance();
-    axiosInstance.get(`${config["plex_update_url"]}${config["token"]}`);
+    await axiosInstance.get(`${config["plex_update_url"]}${config["token"]}`);
+    hasRefreshed = true;
   } catch (e) {
     api.communication.logInfo(
       `Error while trying to refresh media server: ${e.message}`,
@@ -20,7 +22,7 @@ async function refresh(api, config) {
 }
 
 async function onConfigUpdate(api, config) {
-  if (config["run_on_start"]) {
+  if (config["run_on_start"] && !hasRefreshed) {
     await refresh(api, config);
   }
 }
