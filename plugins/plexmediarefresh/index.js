@@ -9,8 +9,14 @@ async function onSyncSuccess(api, config) {
 }
 
 async function refresh(api, config) {
-  const axiosInstance = await api.getAxiosInstance();
-  axiosInstance.get(`${config["plex_update_url"]}${config["token"]}`);
+  try {
+    const axiosInstance = await api.getAxiosInstance();
+    axiosInstance.get(`${config["plex_update_url"]}${config["token"]}`);
+  } catch (e) {
+    api.communication.logInfo(
+      `Error while trying to refresh media server: ${e.message}`,
+    );
+  }
 }
 
 async function onConfigUpdate(api, config) {
