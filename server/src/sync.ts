@@ -12,7 +12,8 @@ import { pluginApis } from "./plugin-system";
 let currentWriteStream: fs.WriteStream | null = null;
 
 export type SyncResult =
-  | { type: "Success" }
+  | { type: "FilesDownloaded" }
+  | { type: "NoDownloadsDetected" }
   | { type: "Aborted" }
   | { type: "Error"; error: Error };
 
@@ -45,6 +46,7 @@ export async function syncFiles(
   }
 
   applicationState.communication.logInfo(`Attempting to sync.`);
+  let filesDownloaded = false;
   for (const syncMap of applicationState.config.syncMaps) {
     const syncResult = await sync(
       syncMap,
@@ -52,15 +54,12 @@ export async function syncFiles(
       applicationState.config,
       applicationState.communication,
     );
-    if (syncResult.type === "Success") {
-      for (const plugin of applicationState.plugins) {
-        if (plugin.onSyncSuccess) {
-          await plugin.onSyncSuccess(pluginApis[plugin.name], plugin.config);
-        }
-      }
-    }
     const abortSync = match(syncResult)
-      .with({ type: "Success" }, () => false)
+      .with({ type: "FilesDownloaded" }, () => {
+        filesDownloaded = true;
+        return false;
+      })
+      .with({ type: "NoDownloadsDetected" }, () => false)
       .with({ type: "Aborted" }, () => true)
       .with({ type: "Error" }, () => false)
       .exhaustive();
@@ -70,6 +69,16 @@ export async function syncFiles(
   }
   updateSyncStatus(applicationState, false);
   applicationState.communication.logInfo(`Sync done!`);
+  if (filesDownloaded) {
+    for (const plugin of applicationState.plugins) {
+      if (plugin.onFilesDownloadSuccess) {
+        await plugin.onFilesDownloadSuccess(
+          pluginApis[plugin.name],
+          plugin.config,
+        );
+      }
+    }
+  }
 
   ftpClient.free();
 }
@@ -205,7 +214,7 @@ async function sync(
         `Sync config "${syncMap.id}" has a rename configured but it matches no files.`,
       );
     }
-
+    let filesDownloaded = 0;
     for (const [localFile, fileMatches] of Object.entries(fileMatchesMap)) {
       const latestRemoteMatch = getLatestMatchingFile(fileMatches);
 
@@ -240,8 +249,11 @@ async function sync(
         currentWriteStream,
         latestRemoteMatch.listingElement.size,
       );
+      filesDownloaded++;
     }
-    return { type: "Success" };
+    return filesDownloaded > 0
+      ? { type: "FilesDownloaded" }
+      : { type: "NoDownloadsDetected" };
   } catch (e) {
     if (e instanceof Error) {
       if ("code" in e) {

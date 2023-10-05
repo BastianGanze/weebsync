@@ -5,7 +5,7 @@ async function register(api) {
   api.communication.logInfo("Plex media refresh registered.");
 }
 
-async function onSyncSuccess(api, config) {
+async function onFilesDownloadSuccess(api, config) {
   await refresh(api, config);
 }
 
@@ -33,7 +33,7 @@ var index = {
   description: "Plugin to tell plex to rescan media files.",
   register,
   onConfigUpdate,
-  onSyncSuccess,
+  onFilesDownloadSuccess,
   pluginConfigurationDefinition: [
     { label: "Plugin settings", type: "label" },
     { key: "run_on_start", type: "boolean", default: true },

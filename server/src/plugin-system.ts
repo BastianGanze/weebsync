@@ -47,7 +47,7 @@ export async function initPluginSystem(applicationState: ApplicationState) {
 
 export interface WeebsyncPlugin extends WeebsyncPluginBaseInfo {
   register: (api: WeebsyncApi) => Promise<void>;
-  onSyncSuccess: (
+  onFilesDownloadSuccess: (
     api: WeebsyncApi,
     config: WeebsyncPluginBaseInfo["config"],
   ) => Promise<void>;
