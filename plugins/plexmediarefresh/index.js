@@ -15,7 +15,7 @@ async function refresh(api, config) {
     await axiosInstance.get(`${config["plex_update_url"]}${config["token"]}`);
     hasRefreshed = true;
   } catch (e) {
-    api.communication.logInfo(
+    api.communication.logError(
       `Error while trying to refresh media server: ${e.message}`,
     );
   }
