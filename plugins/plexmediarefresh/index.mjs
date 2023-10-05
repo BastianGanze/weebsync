@@ -17,7 +17,7 @@ async function onConfigUpdate(api, config) {
   }
 }
 
-var index = {
+export default {
   name: "plex-media-refresh",
   version: "0.1",
   description: "Plugin to tell plex to rescan media files.",
@@ -40,5 +40,3 @@ var index = {
     },
   ],
 };
-
-module.exports = index;
