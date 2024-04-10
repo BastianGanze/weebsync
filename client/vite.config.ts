@@ -16,7 +16,7 @@ export default defineConfig(({ command }) => {
     },
     base: "",
     define: {
-      __HOST__: command === "serve" ? '"http://0.0.0.0:42380"' : '""',
+      __HOST__: command === "serve" ? '"ws://localhost:42380"' : '""',
     },
     build: {
       outDir: "../build/client",
